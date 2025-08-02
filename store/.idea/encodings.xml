@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/ApiGatewayApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ApiGatewayApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ConfigServiceApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ConfigServiceApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EurekaServerApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/EurekaServerApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/InventoryServiceApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/InventoryServiceApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/NotificationServiceApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/NotificationServiceApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/OrderServiceApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/OrderServiceApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ProductServiceApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ProductServiceApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/UserServiceApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/UserServiceApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

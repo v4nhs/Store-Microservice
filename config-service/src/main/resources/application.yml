@@ -1,0 +1,17 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-service
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/v4nhs/StoreMicroservice.git/config-repo
+          default-label: main
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
