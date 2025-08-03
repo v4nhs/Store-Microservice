@@ -3,6 +3,7 @@ package com.store.controller;
 import com.store.model.Order;
 import com.store.model.OrderStatus;
 import com.store.repository.OrderRepository;
+import com.store.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,8 @@ import java.util.Optional;
 public class OrderController {
 
     private final OrderRepository orderRepository;
+    private final OrderService orderService;
+
 
     @GetMapping
     public List<Order> getAll() {
@@ -32,9 +35,7 @@ public class OrderController {
 
     @PostMapping
     public Order create(@RequestBody Order order) {
-        order.setStatus(OrderStatus.PENDING);
-        order.setCreatedAt(LocalDateTime.now());
-        return orderRepository.save(order);
+        return orderService.createOrder(order);
     }
 
     @PutMapping("/{id}/status")

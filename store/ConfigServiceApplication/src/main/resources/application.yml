@@ -2,16 +2,11 @@ server:
   port: 8888
 
 spring:
-  application:
-    name: config-service
   cloud:
     config:
       server:
         git:
-          uri: https://github.com/<tên-user>/store-config-repo
-          default-label: main
-          search-paths: config
-
+          uri: https://github.com/v4nhs/store-config.git
 eureka:
   client:
     service-url:

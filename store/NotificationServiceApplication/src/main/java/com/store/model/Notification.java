@@ -1,23 +1,15 @@
 package com.store.model;
 
-import jakarta.persistence.*;
-import lombok.*;
-
-import java.time.LocalDateTime;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.Data;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name = "notifications")
 public class Notification {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String recipient;
+    private String orderId;
+    private String userEmail;
     private String message;
-    private LocalDateTime sentAt;
 }
 

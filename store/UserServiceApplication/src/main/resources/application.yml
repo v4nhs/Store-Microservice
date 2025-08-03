@@ -1,17 +1,18 @@
 server:
-  port: 8083
+  port: 8081
 
 spring:
-  application:
-    name: user-service
   datasource:
-    url: jdbc:mysql://localhost:3306/store
+    url: jdbc:mysql://localhost:3306/userdb
     username: root
     password: admin
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+jwt:
+  secret: Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM
 
 eureka:
   client:
