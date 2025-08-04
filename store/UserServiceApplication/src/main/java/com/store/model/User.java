@@ -18,6 +18,6 @@ public class User {
     private String email;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id") // tên cột trong bảng User sẽ là role_id
+    @JoinColumn(name = "role_id")
     private Role role;
 }

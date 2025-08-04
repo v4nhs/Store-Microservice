@@ -1,4 +1,4 @@
-package com.store.request;
+package com.store.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryRequest {
-    private String productId;
+public class ProductDto {
+    private String id;
+    private String name;
+    private double price;
     private int quantity;
 }

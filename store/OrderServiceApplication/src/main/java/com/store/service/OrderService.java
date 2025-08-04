@@ -1,40 +1,40 @@
 package com.store.service;
 
-import com.store.dto.UserDto;
+import com.store.dto.OrderDto;
 import com.store.model.Order;
-import com.store.model.OrderEvent;
-import com.store.model.OrderStatus;
 import com.store.repository.OrderRepository;
+import com.store.request.OrderRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
-
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class OrderService {
-
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
     private final OrderRepository orderRepository;
-    private final KafkaProducer kafkaProducer;
-    private final UserService userService;
+    private final OrderKafkaProducer orderKafkaProducer;
 
-    public Order createOrder(Order order) {
-        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserDto user = userService.getUserById(userId);
+    public Order createOrder(OrderRequest request) {
+        Order order = new Order();
+        logger.info("=============================");
+        order.setUserId(request.getUserId());
+        order.setProductId(request.getProductId());
+        order.setQuantity(String.valueOf(request.getQuantity()));
+        order.setStatus("PENDING");
 
-        order.setUserId(userId);
-        order.setStatus(OrderStatus.PENDING);
-        order.setCreatedAt(LocalDateTime.now());
-        Order savedOrder = orderRepository.save(order);
+        orderRepository.save(order);
+        logger.info("Đã gọi lệnh save() cho order: {}", order.getId());
 
-        OrderEvent event = new OrderEvent(
-                savedOrder.getId(),
-                user.getEmail(),
-                "Đơn hàng của bạn đã được đặt thành công"
-        );
-        kafkaProducer.sendOrderNotification(event);
+        orderKafkaProducer.sendOrderCreatedEvent(order);
+        logger.info("Đã gọi lệnh gửi sự kiện Kafka.");
+        return orderRepository.save(order);
+    }
 
-        return savedOrder;
+    public void updateOrderStatus(String id, String status) {
+        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setStatus(status);
+        orderRepository.save(order);
     }
 }

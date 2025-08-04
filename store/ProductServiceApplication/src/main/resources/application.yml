@@ -1,6 +1,10 @@
+server:
+  port: 8082
+
 spring:
   application:
     name: product-service
+
   datasource:
     url: jdbc:mysql://localhost:3306/productdb
     username: root
@@ -14,8 +18,6 @@ spring:
 jwt:
   secret: Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM
 
-server:
-  port: 8082
 eureka:
   client:
     service-url:

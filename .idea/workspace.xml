@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="596c0152-c1dd-46a3-a796-14198fab8913" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/store/EurekaServerApplication/src/main/java/com/store/EurekaServerApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/InventoryServiceApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/config/RedisConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/dto/ProductDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/event/OrderEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/event/OrderStatusUpdate.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/kafka/InventoryKafkaConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/service/InventoryListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/service/InventoryService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/NotificationServiceApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/config/RedisConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/dto/OrderEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/repository/NotificationRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/service/NotificationService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/dto/OrderDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/model/OrderEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/model/OrderStatusUpdate.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/request/OrderRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/security/JwtUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/service/OrderKafkaProducer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/service/OrderService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/config/RestTemplateConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/dto/ProductDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/service/ProductService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/resources/service/ProductService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/config/AdminInitializer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/controller/UserController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/dto/OrderDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/dto/ProductDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/dto/UserDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/model/Order.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/model/Product.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/model/Role.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/repository/RoleRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/request/OrderRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/service/UserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/store/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ApiGatewayApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/store/ApiGatewayApplication/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ConfigServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/ConfigServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ConfigServiceApplication/src/main/java/com/store/ConfigServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/ConfigServiceApplication/src/main/java/com/store/ConfigServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ConfigServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/store/ConfigServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/EurekaServerApplication/src/main/java/com/store/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/EurekaServerApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/store/EurekaServerApplication/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/InventoryServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/InventoryServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/InventoryServiceApplication/src/main/java/com/store/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/NotificationServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/model/Notification.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/NotificationServiceApplication/src/main/java/com/store/model/Notification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/OrderServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/OrderServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/OrderServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/OrderServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/controller/OrderController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/model/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/model/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/model/OrderStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/repository/OrderRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/OrderServiceApplication/src/main/java/com/store/repository/OrderRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ProductServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/ProductServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/ProductServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/ProductServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/controller/ProductController.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/controller/ProductController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/model/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/model/Product.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/repository/ProductRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/java/com/store/repository/ProductRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/store/ProductServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/UserServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/UserServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/security/JwtUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/java/com/store/security/JwtUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store/UserServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/store/UserServiceApplication/src/main/resources/application.yml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": -1
+}]]></component>
+  <component name="ProjectId" id="30p5sqUXBSx8RezIjTR1IuBZcmW" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "settings.editor.selected.configurable": "configurable.group.appearance",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="596c0152-c1dd-46a3-a796-14198fab8913" name="Changes" comment="" />
+      <created>1754311883880</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1754311883880</updated>
+      <workItem from="1754311885251" duration="2000" />
+    </task>
+    <servers />
+  </component>
+</project>

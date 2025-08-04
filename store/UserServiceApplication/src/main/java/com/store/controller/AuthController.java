@@ -1,16 +1,17 @@
 package com.store.controller;
 
+import com.store.dto.UserDto;
 import com.store.model.Role;
 import com.store.model.User;
 import com.store.repository.RoleRepository;
 import com.store.repository.UserRepository;
 import com.store.security.JwtUtil;
+import com.store.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -22,9 +23,13 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RoleRepository roleRepository;
+    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody User user) {
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            return ResponseEntity.badRequest().body("Password is required");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Role userRole = roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new RuntimeException("Role USER not found"));
@@ -43,5 +48,10 @@ public class AuthController {
                     return ResponseEntity.ok(Map.of("token", token));
                 })
                 .orElse(ResponseEntity.status(401).body(Map.of("error", "Invalid credentials")));
+    }
+    @GetMapping("/admin/{role}")
+    public ResponseEntity<UserDto> getUser(@PathVariable String role) {
+        UserDto user = userService.getUserByUsername(role);
+        return ResponseEntity.ok(user);
     }
 }

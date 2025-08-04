@@ -1,61 +1,37 @@
 package com.store.controller;
 
+import com.store.dto.OrderDto;
 import com.store.model.Order;
-import com.store.model.OrderStatus;
-import com.store.repository.OrderRepository;
+import com.store.request.OrderRequest;
+import com.store.security.JwtUtil;
+import com.store.service.OrderKafkaProducer;
 import com.store.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderController {
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
-    private final OrderRepository orderRepository;
     private final OrderService orderService;
-
-
-    @GetMapping
-    public List<Order> getAll() {
-        return orderRepository.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Order> getById(@PathVariable String id) {
-        return orderRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
+    private final OrderKafkaProducer orderKafkaProducer;
     @PostMapping
-    public Order create(@RequestBody Order order) {
-        return orderService.createOrder(order);
+    public ResponseEntity<Order> placeOrder(
+            @RequestBody OrderRequest request,
+            @RequestHeader("Authorization") String token) {
+
+        String userId = JwtUtil.extractUserId(token);
+        request.setUserId(userId); // gán userId từ token vào request
+
+        // xử lý lưu order như bình thường
+        Order order = orderService.createOrder(request);
+        return ResponseEntity.ok(order);
     }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<Order> updateStatus(@PathVariable String id, @RequestParam OrderStatus status) {
-        Optional<Order> optionalOrder = orderRepository.findById(id);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        Order order = optionalOrder.get();
-        order.setStatus(status);
-        return ResponseEntity.ok(orderRepository.save(order));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        return orderRepository.findById(id)
-                .map(o -> {
-                    orderRepository.delete(o);
-                    return ResponseEntity.noContent().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
 }
+

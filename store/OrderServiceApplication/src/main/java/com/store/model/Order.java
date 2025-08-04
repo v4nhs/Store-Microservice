@@ -4,25 +4,20 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.kafka.common.protocol.types.Field;
 
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "orders")
 public class Order {
-
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-
-    private String productId;
-    private int quantity;
-
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
-
-    private LocalDateTime createdAt;
     private String userId;
+    private String productId;
+    private String status;
+    private String quantity;
+
 }

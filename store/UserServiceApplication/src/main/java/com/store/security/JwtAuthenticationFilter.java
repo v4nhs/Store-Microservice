@@ -45,7 +45,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String role = claims.get("role", String.class);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // ✅ Thêm ROLE_ nếu thiếu
                 if (!role.startsWith("ROLE_")) {
                     role = "ROLE_" + role;
                 }

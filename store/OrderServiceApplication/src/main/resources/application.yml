@@ -2,6 +2,8 @@ server:
   port: 8083
 
 spring:
+  application:
+    name: order-service
   datasource:
     url: jdbc:mysql://localhost:3306/orderdb
     username: root
@@ -14,10 +16,9 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: true
-
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+jwt:
+  secret: Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM
 eureka:
   client:
     service-url:
