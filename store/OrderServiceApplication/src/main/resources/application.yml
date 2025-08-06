@@ -12,6 +12,12 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -19,6 +25,7 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 jwt:
   secret: Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM
+
 eureka:
   client:
     service-url:

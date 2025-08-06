@@ -1,52 +1,39 @@
 package com.store.service;
 
-import com.store.dto.ProductDto;
-import com.store.event.OrderEvent;
+import com.store.dto.OrderItemDTO;
+import com.store.model.Inventory;
+import com.store.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InventoryService {
+public class InventoryService{
 
-    private final RestTemplate restTemplate;
+    private final InventoryRepository inventoryRepository;
 
-    public boolean checkStock(OrderEvent event) {
+    public int getAvailableQuantity(String productId) {
+        return inventoryRepository.findByProductId(productId)
+                .map(Inventory::getQuantity)
+                .orElse(0);
+    }
 
-        ProductDto product = restTemplate.getForObject(
-                "http://product-service/api/products/" + event.getProductId(),
-                ProductDto.class
-        );
-
-        HttpEntity<String> entity = null;
-
-        if (product.getQuantity() >= event.getQuantity()) {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            entity = new HttpEntity<>(null, headers);
-
-            restTemplate.exchange(
-                    "http://order-service/api/orders/" + event.getId() + "/status?status=CONFIRMED",
-                    HttpMethod.PUT,
-                    entity,
-                    String.class
-            );
-        } else {
-            restTemplate.exchange(
-                    "http://order-service/api/orders/" + event.getId() + "/status?status=REJECTED",
-                    HttpMethod.PUT,
-                    entity,
-                    String.class
-            );
+    public boolean checkStock(List<OrderItemDTO> items) {
+        for (OrderItemDTO item : items) {
+            Inventory inventory = inventoryRepository.findByProductId(item.getProductId()).orElse(null);
+            if (inventory == null || inventory.getQuantity() < item.getQuantity()) {
+                return false;
+            }
         }
-        return checkStock(event);
+        for (OrderItemDTO item : items) {
+            Inventory inventory = inventoryRepository.findByProductId(item.getProductId()).orElse(null);
+            if (inventory != null) {
+                inventory.setQuantity(inventory.getQuantity() - item.getQuantity());
+                inventoryRepository.save(inventory);
+            }
+        }
+        return true;
     }
 }
-
-

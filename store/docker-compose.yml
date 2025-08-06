@@ -24,12 +24,12 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
   eureka-server:
-    build: ./eureka-server
+    build: ./EurekaServerApplication
     ports:
       - "8761:8761"
 
   user-service:
-    build: ./user-service
+    build: ./UserServiceApplication
     ports:
       - "8081:8081"
     depends_on:
@@ -38,10 +38,19 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
 
   product-service:
-    build: ./product-service
+    build: ./ProductServiceApplication
     ports:
       - "8082:8082"
     depends_on:
       - eureka-server
     environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+  order-service:
+    build: ./OrderServiceApplication
+    ports:
+      - "8083:8083"
+    depends_on:
+      - eureka-server
+    environment:
+      SPRING_APPLICATION_NAME: order-service
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka

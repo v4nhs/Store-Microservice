@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDto {
-    private String id;
+public class ProductCreatedEvent {
+    private String productId;
     private String name;
     private double price;
     private int quantity;

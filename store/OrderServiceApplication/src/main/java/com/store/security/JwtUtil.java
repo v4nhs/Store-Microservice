@@ -1,10 +1,16 @@
 package com.store.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.util.Base64;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,22 +18,35 @@ import java.util.Base64;
 
 @Component
 public class JwtUtil {
-    private static final String SECRET_KEY_BASE64 = "Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM";
 
-    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY_BASE64));
-    public static String extractUserId(String token) {
-        // Cắt bỏ "Bearer " nếu có
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
+    // Fixed Base64-encoded secret key
+    private static final String JWT_SECRET = "Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM";
+
+    private final SecretKey key;
+
+    public JwtUtil() {
+        byte[] keyBytes = Base64.getDecoder().decode(JWT_SECRET);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String extractUserId(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            getClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
+    }
 
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+    private Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-
-        // Giả sử userId được lưu trong claim "sub" (subject)
-        return claims.getSubject();
     }
 }

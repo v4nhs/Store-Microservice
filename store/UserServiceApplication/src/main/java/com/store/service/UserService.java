@@ -35,15 +35,17 @@ public class UserService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        if (token != null && !token.startsWith("Bearer ")) {
-            token = "Bearer " + token;
+        if (token != null) {
+            if (!token.startsWith("Bearer ")) {
+                token = "Bearer " + token;
+            }
+            headers.set("Authorization", token);
         }
-        headers.set("Authorization", token);
-
         return headers;
     }
     public ProductDto createProduct(ProductDto productDto, HttpServletRequest request) {
         try {
+            logger.info("Authorization token from request: {}", request.getHeader("Authorization"));
             HttpHeaders headers = createAuthHeaders(request);
             HttpEntity<ProductDto> httpEntity = new HttpEntity<>(productDto, headers);
 
@@ -53,6 +55,7 @@ public class UserService {
                     ProductDto.class
             );
 
+            logger.info("Headers to send: {}", headers);
             return response.getBody();
         } catch (Exception e) {
             logger.error("Lỗi tạo sản phẩm: {}", e.getMessage(), e);
@@ -109,7 +112,7 @@ public class UserService {
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<OrderRequest> entity = new HttpEntity<>(orderRequest, headers);
-
+            logger.info("Đang gửi request tới order-service...");
             // Gửi POST request đến order-service
             ResponseEntity<Order> response = restTemplate.exchange(
                     "http://order-service/api/orders",
@@ -122,8 +125,9 @@ public class UserService {
             logger.info("Order nhận về: {}", orderResponse);
             logger.info("Status: {}", response.getStatusCodeValue());
             logger.info("Body: {}", response.getBody());
-
+            logger.info("Đang gửi request tới order-service...");
             return orderResponse != null ? orderResponse.toString() : "Order creation failed";
+
 
         } catch (Exception e) {
             logger.error("Đặt hàng thất bại: {}", e.getMessage(), e);

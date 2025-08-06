@@ -12,16 +12,10 @@
     <name>store-microservice</name>
     <description>Spring Boot Multi-module Microservice Project</description>
 
-    <!-- ✅ Khai báo các module con -->
     <modules>
         <module>ConfigServiceApplication</module>
         <module>EurekaServerApplication</module>
         <module>ApiGatewayApplication</module>
-        <module>UserServiceApplication</module>
-        <module>ProductServiceApplication</module>
-        <module>OrderServiceApplication</module>
-        <module>InventoryServiceApplication</module>
-        <module>NotificationServiceApplication</module>
         <module>ProductServiceApplication</module>
         <module>OrderServiceApplication</module>
         <module>InventoryServiceApplication</module>

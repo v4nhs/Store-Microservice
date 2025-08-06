@@ -1,6 +1,6 @@
 package com.store.service;
 
-import com.store.dto.OrderDto;
+import com.store.exception.InsufficientStockException;
 import com.store.model.Order;
 import com.store.repository.OrderRepository;
 import com.store.request.OrderRequest;
@@ -15,21 +15,36 @@ public class OrderService {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
     private final OrderRepository orderRepository;
     private final OrderKafkaProducer orderKafkaProducer;
+    private final InventoryClient inventoryClient;
 
     public Order createOrder(OrderRequest request) {
+        logger.info("============= CREATE ORDER =============");
+        int requestedQuantity = request.getQuantity();
+
+        // Lấy số lượng tồn kho từ inventory-service
+        int availableQuantity = inventoryClient.getAvailableQuantity(request.getProductId());
+
+
+        if (requestedQuantity > availableQuantity) {
+            // Ném Exception mới với thông báo cụ thể
+            throw new InsufficientStockException("Số lượng yêu cầu vượt quá tồn kho!");
+        }
+
         Order order = new Order();
-        logger.info("=============================");
         order.setUserId(request.getUserId());
         order.setProductId(request.getProductId());
-        order.setQuantity(String.valueOf(request.getQuantity()));
+        order.setQuantity(request.getQuantity());
         order.setStatus("PENDING");
 
-        orderRepository.save(order);
-        logger.info("Đã gọi lệnh save() cho order: {}", order.getId());
+        // Lưu đơn hàng vào DB
+        Order savedOrder = orderRepository.save(order);
+        logger.info("Đã lưu Order với ID: {}", savedOrder.getId());
 
-        orderKafkaProducer.sendOrderCreatedEvent(order);
-        logger.info("Đã gọi lệnh gửi sự kiện Kafka.");
-        return orderRepository.save(order);
+        // Gửi sự kiện Kafka
+        orderKafkaProducer.sendOrderCreatedEvent(savedOrder);
+        logger.info("Đã gửi sự kiện Kafka cho Order ID: {}", savedOrder.getId());
+
+        return savedOrder;
     }
 
     public void updateOrderStatus(String id, String status) {
@@ -37,4 +52,6 @@ public class OrderService {
         order.setStatus(status);
         orderRepository.save(order);
     }
+
+
 }

@@ -12,6 +12,17 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: inventory-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.store.dto"   # hoặc "*" nếu bạn muốn trust tất cả
+        spring.json.value.default.type: com.store.dto.ProductCreatedEvent
+        spring.json.use.type.headers: false
 
   data:
     redis:

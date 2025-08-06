@@ -5,18 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "inventory")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "orders")
-public class Order {
+public class Inventory {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
-    private String userId;
+    @Column(name = "product_id", nullable = false)
     private String productId;
-    private String status;
-    private int quantity;
 
+    private int quantity;
 }
