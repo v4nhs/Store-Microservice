@@ -2,6 +2,7 @@ package com.store.controller;
 
 import com.store.dto.OrderDto;
 import com.store.dto.ProductDto;
+import com.store.model.User;
 import com.store.request.OrderRequest;
 import com.store.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    @GetMapping
+    public List<User> getAllUser(){
+        return userService.getAllUser();
+    }
 
     @GetMapping("/products")
     public List<ProductDto> getAll() {

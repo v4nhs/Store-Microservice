@@ -45,4 +45,10 @@ public class ProductController {
         ProductCreatedEvent product = productService.getProductById(productId);
         return ResponseEntity.ok(product.getQuantity());
     }
+
+    @PutMapping("/{productId}/quantity")
+    public ResponseEntity<Void> updateQuantity(@PathVariable String productId, @RequestParam int quantity) {
+        productService.updateQuantity(productId, quantity);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -20,4 +20,15 @@ public class InventoryClient {
         ResponseEntity<Integer> response = restTemplate.getForEntity(url, Integer.class);
         return response.getBody();
     }
+    // Gọi API inventory-service để giảm tồn kho (reserve stock)
+    public boolean reserveStock(String productId, int quantity) {
+        String url = "http://inventory-service/api/inventory/" + productId + "/decrease?quantity=" + quantity;
+
+        try {
+            restTemplate.postForEntity(url, null, Void.class);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

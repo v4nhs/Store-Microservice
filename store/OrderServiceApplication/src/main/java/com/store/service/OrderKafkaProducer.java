@@ -24,7 +24,7 @@ public class OrderKafkaProducer {
             String json = objectMapper.writeValueAsString(order);
             kafkaTemplate.send("order_topic", json);
         } catch (JsonProcessingException e) {
-            e.printStackTrace(); // hoặc log lỗi
+            e.printStackTrace();
         }
     }
 }

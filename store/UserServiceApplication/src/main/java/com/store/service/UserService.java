@@ -5,12 +5,15 @@ import com.store.dto.OrderDto;
 import com.store.dto.ProductDto;
 import com.store.dto.UserDto;
 import com.store.model.Order;
+import com.store.model.User;
+import com.store.repository.UserRepository;
 import com.store.request.OrderRequest;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -25,7 +28,13 @@ import java.util.List;
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final RestTemplate restTemplate;
+    private final UserRepository userRepository;
 
+    @Cacheable(value = "allUsers", key = "'all'")
+    public List<User> getAllUser(){
+        System.out.println("Get all User first on.....");
+        return userRepository.findAll();
+    }
     public UserDto getUserByUsername(String username) {
         String url = "http://user-service/api/users/" + username;
         return restTemplate.getForObject(url, UserDto.class);

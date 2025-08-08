@@ -1,20 +1,12 @@
-package com.store.model;
-
-import jakarta.persistence.*;
+package com.store.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "inventory")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Inventory {
-
-    @Id
-    @Column(name = "product_id", nullable = false)
+public class ReserveStockRequest {
     private String productId;
-
     private int quantity;
 }

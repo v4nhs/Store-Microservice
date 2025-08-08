@@ -28,7 +28,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<String> createOrder(@RequestBody OrderRequest request,
+    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest request,
                                               @RequestHeader("Authorization") String token) {
         String userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         request.setUserId(userId);
@@ -36,8 +36,9 @@ public class OrderController {
         Order order = orderService.createOrder(request);
 
         // Lưu trạng thái vào Redis
+        System.out.println("Saving to Redis: key=order:" + order.getId() + ", value=" + order.getStatus());
         redisTemplate.opsForValue().set("order:" + order.getId(), order.getStatus());
 
-        return ResponseEntity.ok("Order created with ID: " + order.getId());
+        return ResponseEntity.ok(order);
     }
 }
