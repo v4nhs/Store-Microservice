@@ -15,11 +15,6 @@ public class InventoryClient {
         this.restTemplate = restTemplate;
     }
 
-    public int getAvailableQuantity(String productId) {
-        String url = "http://inventory-service/api/inventory/" + productId;
-        ResponseEntity<Integer> response = restTemplate.getForEntity(url, Integer.class);
-        return response.getBody();
-    }
     // Gọi API inventory-service để giảm tồn kho (reserve stock)
     public boolean reserveStock(String productId, int quantity) {
         String url = "http://inventory-service/api/inventory/" + productId + "/decrease?quantity=" + quantity;

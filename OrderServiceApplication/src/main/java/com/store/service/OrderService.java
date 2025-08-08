@@ -1,5 +1,6 @@
 package com.store.service;
 
+import com.store.dto.OrderDTO;
 import com.store.model.Order;
 import com.store.repository.OrderRepository;
 import com.store.request.OrderRequest;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,6 +22,7 @@ public class OrderService {
     private final OrderKafkaProducer orderKafkaProducer;
     private final InventoryClient inventoryClient;
     private final RestTemplate restTemplate;
+    private final KafkaTemplate<String, OrderDTO> kafkaTemplate;
 
     public Order createOrder(OrderRequest request) {
         logger.info("============= CREATE ORDER =============");
@@ -42,10 +45,21 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         logger.info("Đã lưu Order với ID: {}", savedOrder.getId());
 
+
         // Chỉ gửi Kafka khi order được xác nhận
         if ("CONFIRMED".equals(savedOrder.getStatus())) {
             orderKafkaProducer.sendOrderCreatedEvent(savedOrder);
             logger.info("Đã gửi sự kiện Kafka cho Order ID: {}", savedOrder.getId());
+            OrderDTO event = OrderDTO.builder()
+                    .orderId(savedOrder.getId())
+                    .userId(savedOrder.getUserId())
+                    .productId(savedOrder.getProductId())
+                    .quantity(savedOrder.getQuantity())
+                    .status(savedOrder.getStatus())
+                    .build();
+
+            kafkaTemplate.send("order-topic", event);
+            System.out.println("Đã gửi Kafka event: " + event);
         }
 
         return savedOrder;
