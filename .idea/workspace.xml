@@ -5,35 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd7e30ae-3d9e-4eac-8ca2-df2c97d27524" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/config/KafkaConfigInventory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/OrderCreated.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/ReleaseStock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/StockRejected.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/StockReserved.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventorySagaListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/KafkaConfigOrder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderCreated.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/ReleaseStock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/StockRejected.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/StockReserved.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/UserDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderSagaListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ReleaseStock.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/StockReserved.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductStockSyncListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/controller/InventoryController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventoryService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/KafkaConsumerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/KafkaConsumerConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/NotificationService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/OrderEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/OrderEventListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/KafkaProducerConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/exception/InsufficientStockException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/InventoryClient.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderKafkaProducer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/repository/InventoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/repository/InventoryRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventorySagaListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventorySagaListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/repository/ProductRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/repository/ProductRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,7 +55,7 @@
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/pjPersonal/Store-Microservice/InventoryServiceApplication/src/main/java/com/store/dto",
+    "last_opened_file_path": "D:/pjPersonal/Store-Microservice/ProductServiceApplication/src/main/java/com/store/dto",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -89,6 +68,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\pjPersonal\Store-Microservice\ProductServiceApplication\src\main\java\com\store\dto" />
       <recent name="D:\pjPersonal\Store-Microservice\InventoryServiceApplication\src\main\java\com\store\dto" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
@@ -183,7 +163,7 @@
       <workItem from="1754464023871" duration="11732000" />
       <workItem from="1754616526324" duration="9571000" />
       <workItem from="1754627196936" duration="7360000" />
-      <workItem from="1754874518017" duration="19439000" />
+      <workItem from="1754874518017" duration="21343000" />
     </task>
     <servers />
   </component>

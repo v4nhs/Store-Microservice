@@ -70,20 +70,28 @@ public class ProductService {
     private ProductCreatedEvent mapToDto(Product product) {
         return new ProductCreatedEvent(product.getId(), product.getName(), product.getPrice(), product.getQuantity());
     }
-    public boolean updateQuantity(String productId, int quantity) {
-        Optional<Product> productOpt = productRepository.findById(productId);
-        if (productOpt.isEmpty()) {
-            System.out.println("Không tìm thấy productId: " + productId);
-            return false;
-        }
+    @Transactional
+    public boolean reserveStock(String productId, int qty) {
+        if (qty <= 0) throw new IllegalArgumentException("qty phải > 0");
+        int updated = productRepository.reserve(productId, qty);
+        return updated == 1;
+    }
 
-        Product product = productOpt.get();
-        int oldQuantity = product.getQuantity();
-        product.setQuantity(quantity);
-        productRepository.save(product);
 
-        System.out.println("Đã cập nhật quantity cho productId: " + productId +
-                " | Old Qty: " + oldQuantity + " -> New Qty: " + quantity);
-        return true;
+    @Transactional
+    public void releaseStock(String productId, int qty) {
+        if (qty <= 0) throw new IllegalArgumentException("qty phải > 0");
+        productRepository.release(productId, qty);
+    }
+
+    @Transactional
+    public void updateQuantity(String productId, int newQuantity) {
+        if (newQuantity < 0) throw new IllegalArgumentException("newQuantity không được âm");
+        Product p = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+        int old = p.getQuantity();
+        p.setQuantity(newQuantity);
+        productRepository.save(p);
+        log.info("Admin updated quantity for productId={} | {} -> {}", productId, old, newQuantity);
     }
 }

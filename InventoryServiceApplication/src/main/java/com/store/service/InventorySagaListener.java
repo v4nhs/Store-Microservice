@@ -29,12 +29,11 @@ public class InventorySagaListener {
     public void onOrderCreated(OrderCreated evt) {
         log.info("[INV] Received order-created: {}", evt);
 
-        Inventory inv = inventoryRepository.findByProductId(evt.getProductId()).orElse(null);
+        // 1) Trừ tồn NGUYÊN TỬ: chỉ trừ khi đủ hàng
+        int updated = inventoryRepository.reserve(evt.getProductId(), evt.getQuantity());
 
-        if (inv != null && inv.getQuantity() >= evt.getQuantity()) {
-            inv.setQuantity(inv.getQuantity() - evt.getQuantity());
-            inventoryRepository.save(inv);
-
+        if (updated == 1) {
+            // 2) Đã trừ thành công -> phát stock-reserved
             StockReserved reserved = StockReserved.builder()
                     .orderId(evt.getOrderId())
                     .productId(evt.getProductId())
@@ -44,9 +43,10 @@ public class InventorySagaListener {
             log.info("[INV] Sending stock-reserved: {}", reserved);
             kafkaTemplate.send("stock-reserved", reserved);
         } else {
-            // Reject
+            // 3) Không đủ tồn -> phát stock-rejected (kèm available/requested để debug)
+            int available = inventoryRepository.findByProductId(evt.getProductId())
+                    .map(Inventory::getQuantity).orElse(0);
             int requested = evt.getQuantity();
-            int available = inv == null ? 0 : inv.getQuantity();
 
             StockRejected rejected = StockRejected.builder()
                     .orderId(evt.getOrderId())
@@ -66,9 +66,9 @@ public class InventorySagaListener {
             containerFactory = "releaseStockKafkaListenerFactory")
     @Transactional
     public void onReleaseStock(ReleaseStock evt) {
-        log.info("ReleaseStock: {}", evt);
-        Inventory inv = inventoryRepository.findByProductId(evt.getProductId()).orElseThrow();
-        inv.setQuantity(inv.getQuantity() + evt.getQuantity());
-        inventoryRepository.save(inv);
+        log.info("[INV] ReleaseStock: {}", evt);
+        // Cộng trả tồn NGUYÊN TỬ
+        inventoryRepository.release(evt.getProductId(), evt.getQuantity());
+        log.info("[INV] Released {} for productId={}", evt.getQuantity(), evt.getProductId());
     }
 }
