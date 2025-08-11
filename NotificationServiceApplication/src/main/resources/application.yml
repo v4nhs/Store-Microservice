@@ -16,17 +16,32 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.example.notificationservice.event
+        spring.json.add.type.headers: false
+#  mail:
+#    host: live.smtp.mailtrap.io
+#    port: 587
+#    username: api
+#    password: 88d515444b9a5b5f97f8b67b37682c19
+#    from: hello@demomailtrap.co
+#    properties:
+#      mail:
+#        smtp:
+#          auth: false
+#          starttls:
+#            enable: true
   mail:
-    host: live.smtp.mailtrap.io
+    host: sandbox.smtp.mailtrap.io
     port: 587
-    username: api
-    password: 90e731a67cddcf7814352d9e99ef27de
+    username: c902d1b9dbe317
+    password: 2e1097a6ec4fa5
+    from: test@example.com
     properties:
       mail:
         smtp:
-          auth: false
+          auth: true
           starttls:
             enable: true
+            required: true
 
   datasource:
     url: jdbc:mysql://localhost:3306/notificationdb

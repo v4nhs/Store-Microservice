@@ -143,6 +143,4 @@ public class UserService {
             return "Order creation failed due to internal error";
         }
     }
-
-
 }

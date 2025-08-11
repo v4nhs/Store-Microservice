@@ -4,18 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderDTO {
+public class StockRejected {
     private String orderId;
-    private String userId;
     private String productId;
-    private String productName;
-    private double price;
-    private int quantity;
-    private String status;
-    private String email;
+    private int requested;
+    private String reason;
 }

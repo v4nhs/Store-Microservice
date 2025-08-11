@@ -5,25 +5,35 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd7e30ae-3d9e-4eac-8ca2-df2c97d27524" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/KafkaConsumerConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/RestTemplateConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/OrderEventListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/KafkaProducerConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/config/KafkaConfigInventory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/OrderCreated.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/ReleaseStock.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/StockRejected.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/StockReserved.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventorySagaListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/KafkaConfigOrder.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderCreated.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/ReleaseStock.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/StockRejected.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/StockReserved.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/UserDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderSagaListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/OrderKafkaConsumer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/OrderStatusConsumer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/RedisConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderEvent.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/model/Notification.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/repository/NotificationRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/controller/InventoryController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventoryService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/KafkaConsumerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/KafkaConsumerConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/NotificationService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/controller/OrderController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/OrderEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/OrderEventListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/KafkaProducerConfig.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/InventoryClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/InventoryClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderKafkaProducer.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderKafkaProducer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/exception/InsufficientStockException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/InventoryClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderKafkaProducer.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,9 +53,9 @@
   <component name="JpbToolWindowState">
     <option name="isToolWindowVisible" value="false" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="30u4FYafFcqcU3aa2ad3FERzYAm" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -66,17 +76,21 @@
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "D:/pjPersonal/Store-Microservice/InventoryServiceApplication/src/main/java/com/store/dto",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
-    "spring.configuration.checksum": "dc22ee9ea16ca2cd8945cbe73cce83cc",
+    "spring.configuration.checksum": "7e8edfd08454b9e5adef1601dd294e7d",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\pjPersonal\Store-Microservice\InventoryServiceApplication\src\main\java\com\store\dto" />
+    </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.store.dto" />
       <recent name="com.store.service" />
@@ -149,13 +163,13 @@
     </configuration>
     <list>
       <item itemvalue="Spring Boot.ApiGatewayApplication" />
-      <item itemvalue="Spring Boot.NotificationServiceApplication" />
       <item itemvalue="Spring Boot.InventoryServiceApplication" />
+      <item itemvalue="Spring Boot.OrderServiceApplication" />
+      <item itemvalue="Spring Boot.NotificationServiceApplication" />
       <item itemvalue="Spring Boot.UserServiceApplication" />
       <item itemvalue="Spring Boot.ProductServiceApplication" />
       <item itemvalue="Spring Boot.ConfigServiceApplication" />
       <item itemvalue="Spring Boot.EurekaServerApplication" />
-      <item itemvalue="Spring Boot.OrderServiceApplication" />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -168,7 +182,8 @@
       <updated>1754464021961</updated>
       <workItem from="1754464023871" duration="11732000" />
       <workItem from="1754616526324" duration="9571000" />
-      <workItem from="1754627196936" duration="6642000" />
+      <workItem from="1754627196936" duration="7360000" />
+      <workItem from="1754874518017" duration="19439000" />
     </task>
     <servers />
   </component>
