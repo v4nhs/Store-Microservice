@@ -1,5 +1,6 @@
 package com.store.service;
 
+import com.store.dto.OrderCreated;
 import com.store.dto.OrderDTO;
 import com.store.dto.ProductDTO;
 import com.store.dto.UserDTO;
@@ -30,6 +31,10 @@ public class OrderService {
     @Transactional(rollbackFor = Exception.class)
     public Order createOrder(OrderRequest request) {
         log.info("============= CREATE ORDER (SAGA) =============");
+        if (request.getQuantity() == null || request.getQuantity() < 1) {
+            throw new IllegalArgumentException("quantity phải >= 1");
+        }
+
 
         Order order = new Order();
         order.setUserId(request.getUserId());
@@ -75,19 +80,15 @@ public class OrderService {
                         log.warn("Không lấy được user {}: {}", saved.getUserId(), ex.getMessage());
                     }
 
-                    OrderDTO evt = OrderDTO.builder()
+                    OrderCreated evt = OrderCreated.builder()
                             .orderId(saved.getId())
                             .userId(saved.getUserId())
                             .productId(saved.getProductId())
-                            .productName(productName)
-                            .price(price)
                             .quantity(saved.getQuantity())
-                            .status(saved.getStatus() != null ? saved.getStatus() : "PENDING")
-                            .email(email)
                             .build();
 
                     kafkaTemplate.send("order-created", evt);
-                    log.info("Đã publish 'order-created' (enrich) cho {}", saved.getId());
+                    log.info("Đã publish 'order-created' (minimal) cho {}", saved.getId());
                 } catch (Exception ex) {
                     log.error("Publish 'order-created' thất bại cho {}: {}", saved.getId(), ex.getMessage(), ex);
                 }

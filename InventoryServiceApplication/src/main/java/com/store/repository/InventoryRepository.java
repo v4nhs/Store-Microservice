@@ -11,11 +11,23 @@ import java.util.Optional;
 @Repository
 public interface InventoryRepository extends JpaRepository<Inventory, String> {
     Optional<Inventory> findByProductId(String productId);
-    @Modifying
-    @Query("UPDATE Inventory i SET i.quantity = i.quantity - :qty WHERE i.productId = :pid AND i.quantity >= :qty")
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        UPDATE Inventory i
+           SET i.quantity = i.quantity - :qty
+         WHERE i.productId = :pid
+           AND i.quantity >= :qty
+           AND :qty > 0
+    """)
     int reserve(@Param("pid") String productId, @Param("qty") int qty);
 
-    @Modifying
-    @Query("UPDATE Inventory i SET i.quantity = i.quantity + :qty WHERE i.productId = :pid")
+    // Cộng trả tồn, chỉ cộng khi qty > 0 (tránh truyền âm)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        UPDATE Inventory i
+           SET i.quantity = i.quantity + :qty
+         WHERE i.productId = :pid
+           AND :qty > 0
+    """)
     int release(@Param("pid") String productId, @Param("qty") int qty);
 }

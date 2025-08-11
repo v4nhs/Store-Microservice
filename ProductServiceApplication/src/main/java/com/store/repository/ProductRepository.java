@@ -9,9 +9,23 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends JpaRepository<Product, String> {
-    @Modifying @Query("UPDATE Product p SET p.quantity = p.quantity - :qty WHERE p.id = :pid AND p.quantity >= :qty")
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+  UPDATE Product p
+     SET p.quantity = p.quantity - :qty
+   WHERE p.id = :pid
+     AND p.quantity >= :qty
+     AND :qty > 0
+""")
     int reserve(@Param("pid") String productId, @Param("qty") int qty);
-    @Modifying @Query("UPDATE Product p SET p.quantity = p.quantity + :qty WHERE p.id = :pid")
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+  UPDATE Product p
+     SET p.quantity = p.quantity + :qty
+   WHERE p.id = :pid
+     AND :qty > 0
+""")
     int release(@Param("pid") String productId, @Param("qty") int qty);
 
 }

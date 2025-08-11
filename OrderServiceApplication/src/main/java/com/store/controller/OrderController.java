@@ -4,6 +4,7 @@ import com.store.model.Order;
 import com.store.request.OrderRequest;
 import com.store.security.JwtUtil;
 import com.store.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest request,
+    public ResponseEntity<Order> createOrder(@Valid @RequestBody OrderRequest request,
                                               @RequestHeader("Authorization") String token) {
         String userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         request.setUserId(userId);

@@ -27,6 +27,10 @@ public class InventorySagaListener {
             containerFactory = "orderCreatedKafkaListenerFactory")
     @Transactional
     public void onOrderCreated(OrderCreated evt) {
+        if (evt.getQuantity() <= 0) {
+            log.warn("Bỏ qua order {}, quantity không hợp lệ: {}", evt.getOrderId(), evt.getQuantity());
+            return;
+        }
         log.info("[INV] Received order-created: {}", evt);
 
         // 1) Trừ tồn NGUYÊN TỬ: chỉ trừ khi đủ hàng
