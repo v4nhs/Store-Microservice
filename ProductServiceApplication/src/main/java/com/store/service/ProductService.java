@@ -70,19 +70,6 @@ public class ProductService {
     private ProductCreatedEvent mapToDto(Product product) {
         return new ProductCreatedEvent(product.getId(), product.getName(), product.getPrice(), product.getQuantity());
     }
-    @Transactional
-    public boolean reserveStock(String productId, int qty) {
-        if (qty <= 0) throw new IllegalArgumentException("qty phải > 0");
-        int updated = productRepository.reserve(productId, qty);
-        return updated == 1;
-    }
-
-
-    @Transactional
-    public void releaseStock(String productId, int qty) {
-        if (qty <= 0) throw new IllegalArgumentException("qty phải > 0");
-        productRepository.release(productId, qty);
-    }
 
     @Transactional
     public void updateQuantity(String productId, int newQuantity) {

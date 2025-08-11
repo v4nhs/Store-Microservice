@@ -33,7 +33,6 @@ public class ProductStockSyncListener {
             }
         } catch (Exception e) {
             log.error("[PROD] Cannot parse stock-reserved payload: {}", payload, e);
-            // không throw để tránh retry vô ích; nếu muốn DLT thì throw RuntimeException ở đây
         }
     }
 
