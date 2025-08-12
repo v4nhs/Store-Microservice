@@ -81,7 +81,7 @@ public class InventorySagaListener {
         Long res = redis.execute(reserveScript, keys, args.toArray()); // 1=OK, 0=insufficient, 2=duplicate
         try {
             if (res != null && res == 1L) {
-                // 1) STOCK_RESERVED (để order-service consume nếu có)
+                // 1) STOCK_RESERVED
                 var reserved = StockReserved.builder()
                         .orderId(evt.getOrderId())
                         .productId(evt.getProductId())
@@ -107,7 +107,7 @@ public class InventorySagaListener {
                         .status("NEW")
                         .build());
 
-                // 3) ORDER_CONFIRMED (để noti-service gửi mail, không cần sửa order-service)
+                // 3) ORDER_CONFIRMED (để noti-service gửi mail)
                 outboxRepo.save(OutboxEvent.builder()
                         .aggregateType("order")
                         .aggregateId(evt.getOrderId())
