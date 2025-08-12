@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaConfigInventory {
+public class KafkaConfig {
 
     /* ------------------- COMMON CONSUMER ------------------- */
     private Map<String, Object> baseConsumerProps(String groupId) {
@@ -66,7 +66,6 @@ public class KafkaConfigInventory {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        // Tắt type headers để tương thích các consumer không dùng type headers
         props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaProducerFactory<>(props);
     }
@@ -76,7 +75,7 @@ public class KafkaConfigInventory {
         return new KafkaTemplate<>(inventoryProducerFactory());
     }
 
-    /* ------------------- TOPICS (tuỳ chọn tạo tự động) ------------------- */
+    /* ------------------- TOPICS------------------- */
     @Bean
     public NewTopic topicOrderCreated() {
         return TopicBuilder.name("order-created").partitions(1).replicas(1).build();
@@ -95,5 +94,29 @@ public class KafkaConfigInventory {
     @Bean
     public NewTopic topicReleaseStock() {
         return TopicBuilder.name("release-stock").partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic topicStockReleased() {
+        return TopicBuilder.name("stock-released").partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic topicProductStockDecreased() {
+        return TopicBuilder.name("product-stock-decreased").partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic topicNotifyStockReserved() {
+        return TopicBuilder.name("notify-stock-reserved").partitions(1).replicas(1).build();
+    }
+    @Bean
+    public NewTopic topicOrderConfirmed() {
+        return TopicBuilder.name("order-confirmed").partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic topicOrderCancelled() {
+        return TopicBuilder.name("order-cancelled").partitions(1).replicas(1).build();
     }
 }

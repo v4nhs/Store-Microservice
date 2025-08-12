@@ -14,15 +14,23 @@ spring:
     show-sql: true
   kafka:
     bootstrap-servers: localhost:9092
+
+    # Consumer mặc định (các @KafkaListener có containerFactory riêng vẫn override bình thường)
     consumer:
       group-id: inventory-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
-        spring.json.value.default.type: com.store.dto.ProductCreatedEvent
+        spring.json.trusted.packages: com.store.dto
         spring.json.use.type.headers: false
+
+    # Producer: gửi DTO/JSON ra các topic (OutboxRelay)
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
   data:
     redis:

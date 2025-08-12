@@ -75,7 +75,7 @@ public class NotificationService {
 
         String subject = "Đơn hàng #" + order.getOrderId() + " đã xác nhận";
         String body = """
-            <p>Xin chào userId <b>%s</b>,</p>
+            <p>Xin chào <b>%s</b>,</p>
             <p>Đơn hàng <b>#%s</b> đã được <b>xác nhận</b>.</p>
             <p>Sản phẩm: <b>%s</b></p>
             <p>Giá: <b>$%.2f</b> x %d</p>
@@ -106,7 +106,7 @@ public class NotificationService {
 
         String subject = "Đơn hàng #" + order.getOrderId() + " không thành công";
         String body = """
-            <p>Xin chào userId <b>%s</b>,</p>
+            <p>Xin chào <b>%s</b>,</p>
             <p>Rất tiếc, đơn hàng <b>#%s</b> của bạn <b>không thành công</b> (trạng thái: %s).</p>
             <p>Sản phẩm: <b>%s</b></p>
             <p>Lý do thường gặp: hết hàng hoặc số lượng không đủ.</p>

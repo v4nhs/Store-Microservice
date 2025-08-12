@@ -12,6 +12,6 @@ public class OrderCreated {
     private String orderId;
     private String userId;
     private String productId;
-    private int quantity;
+    private Integer quantity;
 }
 
