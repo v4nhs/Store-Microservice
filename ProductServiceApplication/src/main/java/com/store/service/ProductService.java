@@ -23,15 +23,12 @@ public class ProductService {
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     @Transactional
     public ProductResponse createProduct(ProductResponse dto) {
-        log.info("1");
         Product product = new Product();
         product.setName(dto.getName());
         product.setPrice(dto.getPrice());
         product.setQuantity(dto.getQuantity());
 
         Product saved = productRepository.save(product);
-
-        System.out.println(saved);
 
         ProductCreatedEvent event = new ProductCreatedEvent();
         event.setProductId(saved.getId());
