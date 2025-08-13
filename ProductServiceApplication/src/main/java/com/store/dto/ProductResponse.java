@@ -1,16 +1,14 @@
 package com.store.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class ProductCreatedEvent {
-    private String productId;
+@NoArgsConstructor
+public class ProductResponse {
+    private String id;
     private String name;
-    private double price;
+    private Double price;
     private int quantity;
 }

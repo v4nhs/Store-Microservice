@@ -2,6 +2,7 @@ package com.store.service;
 
 
 import com.store.dto.ProductCreatedEvent;
+import com.store.dto.ProductResponse;
 import com.store.model.Product;
 import com.store.repository.ProductRepository;
 import jakarta.transaction.Transactional;
@@ -11,7 +12,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -21,8 +21,9 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
-
-    public ProductCreatedEvent createProduct(ProductCreatedEvent dto) {
+    @Transactional
+    public ProductResponse createProduct(ProductResponse dto) {
+        log.info("1");
         Product product = new Product();
         product.setName(dto.getName());
         product.setPrice(dto.getPrice());
@@ -30,15 +31,15 @@ public class ProductService {
 
         Product saved = productRepository.save(product);
 
-        // Gửi sự kiện sang Kafka
+        System.out.println(saved);
+
         ProductCreatedEvent event = new ProductCreatedEvent();
         event.setProductId(saved.getId());
         event.setQuantity(saved.getQuantity());
         log.info("Sending event to Kafka: {}", event);
         kafkaTemplate.send("product-created-topic", event);
 
-
-        return mapToDto(saved);
+        return new ProductResponse(saved.getId(), saved.getName(), saved.getPrice(), saved.getQuantity());
     }
 
 

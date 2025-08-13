@@ -1,20 +1,20 @@
 package com.store.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Table(name = "inventory")
-@Data
+@Table(name = "inventory", uniqueConstraints = @UniqueConstraint(columnNames = "product_id"))
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Inventory {
-
     @Id
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id", nullable = false, length = 64)
     private String productId;
 
-    private int quantity;
+    @Column(nullable=false)
+    private Integer quantity;
 }

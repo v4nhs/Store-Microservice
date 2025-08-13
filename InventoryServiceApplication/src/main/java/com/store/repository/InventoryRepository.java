@@ -21,4 +21,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
     @Query("UPDATE Inventory i SET i.quantity = i.quantity + :qty " +
             "WHERE i.productId = :productId")
     int applyRelease(@Param("productId") String productId, @Param("qty") int qty);
+
+    boolean existsByProductId(String productId);
 }

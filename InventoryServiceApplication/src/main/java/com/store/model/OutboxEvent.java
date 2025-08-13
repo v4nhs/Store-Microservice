@@ -20,10 +20,6 @@ public class OutboxEvent {
     @Lob
     private String payload;
     private String status;          // NEW / SENT / FAILED
-
-    @Column(columnDefinition = "timestamp default current_timestamp")
-    private java.sql.Timestamp createdAt;
-
     @Lob
     private String lastError;
 }

@@ -59,6 +59,29 @@ public class KafkaConfig {
         return f;
     }
 
+    @Bean
+    public ConsumerFactory<String, String> productCreatedStringConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092"); // chỉnh theo môi trường của bạn
+        // Bỏ qua JsonDeserializer trong YAML bằng cách chỉ định StringDeserializer ở factory này
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+
+        // Dùng group hiện tại hoặc tạo group mới để vượt record lỗi cũ
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "inventory-init-group");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> productCreatedStringFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> f =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        f.setConsumerFactory(productCreatedStringConsumerFactory());
+        f.setConcurrency(2); // tuỳ tải
+        return f;
+    }
+
     /* ------------------- PRODUCER (JSON) ------------------- */
     @Bean
     public ProducerFactory<String, Object> inventoryProducerFactory() {

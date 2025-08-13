@@ -1,9 +1,13 @@
 package com.store.controller;
 
 import com.store.dto.ProductCreatedEvent;
+import com.store.dto.ProductDeletedEvent;
+import com.store.dto.ProductResponse;
+import com.store.repository.ProductRepository;
 import com.store.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,9 +18,11 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductRepository productRepository;
+    private final KafkaTemplate kafkaTemplate;
 
     @PostMapping
-    public ProductCreatedEvent create(@RequestBody ProductCreatedEvent dto) {
+    public ProductResponse create(@RequestBody ProductResponse dto) {
         return productService.createProduct(dto);
     }
 
@@ -36,8 +42,13 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        productService.deleteProduct(id);
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        if (!productRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        productRepository.deleteById(id);
+        kafkaTemplate.send("product-deleted-topic", new ProductDeletedEvent(id));
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/stock/{productId}")

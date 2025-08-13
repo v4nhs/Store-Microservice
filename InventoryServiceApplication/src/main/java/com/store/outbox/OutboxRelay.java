@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OutboxRelay {
 
     private final OutboxRepository repo;
-    private final KafkaTemplate<String, Object> kafka;   // JsonSerializer
+    private final KafkaTemplate<String, Object> kafka;
     private final ObjectMapper om = new ObjectMapper();
     private final com.store.projection.StockProjector projector;
 

@@ -20,6 +20,4 @@ public class StockLedger {
     private String eventType;
     private String productId;
     private Integer quantity;
-    @Column(columnDefinition = "timestamp default current_timestamp")
-    private java.sql.Timestamp createdAt;
 }

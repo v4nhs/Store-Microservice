@@ -1,10 +1,7 @@
 package com.store.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.store.dto.OrderCreated;
-import com.store.dto.ReleaseStock;
-import com.store.dto.StockRejected;
-import com.store.dto.StockReserved;
+import com.store.dto.*;
 import com.store.model.OutboxEvent;
 import com.store.repository.OutboxRepository;
 import com.store.repository.InventoryRepository;
@@ -22,7 +19,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class InventorySagaListener {
+public class InventoryListener {
 
     private final StringRedisTemplate redis;
     private final DefaultRedisScript<Long> reserveScript;
@@ -31,7 +28,7 @@ public class InventorySagaListener {
     private final InventoryRepository inventoryRepository;
     private final ObjectMapper om = new ObjectMapper();
 
-    public InventorySagaListener(
+    public InventoryListener(
             StringRedisTemplate redis,
             @Qualifier("reserveScript") DefaultRedisScript<Long> reserveScript,
             @Qualifier("releaseScript") DefaultRedisScript<Long> releaseScript,

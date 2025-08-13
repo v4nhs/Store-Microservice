@@ -89,7 +89,6 @@ public class OrderSagaListener {
 
         Optional<Order> opt = orderRepository.findById(evt.getOrderId());
         if (opt.isEmpty()) {
-            // Không tìm thấy order -> chỉ log, không throw
             log.warn("Không tìm thấy order {} cho stock-rejected. Bỏ qua.", evt.getOrderId());
             return;
         }
@@ -113,6 +112,7 @@ public class OrderSagaListener {
         orderRepository.save(o);
 
         OrderDTO cancelled = OrderDTO.builder()
+
                 .orderId(o.getId())
                 .userId(o.getUserId())
                 .productId(o.getProductId())
