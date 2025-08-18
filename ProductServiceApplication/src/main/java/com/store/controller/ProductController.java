@@ -2,9 +2,10 @@ package com.store.controller;
 
 import com.store.dto.ProductCreatedEvent;
 import com.store.dto.ProductDeletedEvent;
-import com.store.dto.ProductResponse;
+import com.store.dto.ProductDTO;
 import com.store.repository.ProductRepository;
 import com.store.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,12 +23,12 @@ public class ProductController {
     private final KafkaTemplate kafkaTemplate;
 
     @PostMapping
-    public ProductResponse create(@RequestBody ProductResponse dto) {
+    public ProductDTO create(@Valid @RequestBody ProductDTO dto) {
         return productService.createProduct(dto);
     }
 
     @GetMapping
-    public List<ProductCreatedEvent> getAll() {
+    public List<ProductDTO> getAll() {
         return productService.getAllProducts();
     }
 

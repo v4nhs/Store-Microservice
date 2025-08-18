@@ -2,7 +2,7 @@ package com.store.service;
 
 
 import com.store.dto.ProductCreatedEvent;
-import com.store.dto.ProductResponse;
+import com.store.dto.ProductDTO;
 import com.store.model.Product;
 import com.store.repository.ProductRepository;
 import jakarta.transaction.Transactional;
@@ -22,7 +22,7 @@ public class ProductService {
 
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
     @Transactional
-    public ProductResponse createProduct(ProductResponse dto) {
+    public ProductDTO createProduct(ProductDTO dto) {
         Product product = new Product();
         product.setName(dto.getName());
         product.setPrice(dto.getPrice());
@@ -36,12 +36,20 @@ public class ProductService {
         log.info("Sending event to Kafka: {}", event);
         kafkaTemplate.send("product-created-topic", event);
 
-        return new ProductResponse(saved.getId(), saved.getName(), saved.getPrice(), saved.getQuantity());
+        return new ProductDTO(saved.getId(), saved.getName(), saved.getPrice(), saved.getQuantity());
     }
 
 
-    public List<ProductCreatedEvent> getAllProducts() {
-        return productRepository.findAll().stream().map(this::mapToDto).toList();
+    public List<ProductDTO> getAllProducts() {
+        return productRepository.findAll()
+                .stream()
+                .map(product -> new ProductDTO(
+                        product.getId(),
+                        product.getName(),
+                        product.getPrice(),
+                        product.getQuantity()
+                ))
+                .toList();
     }
 
     public ProductCreatedEvent getProductById(String id) {
