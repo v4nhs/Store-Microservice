@@ -19,9 +19,10 @@ public class Order {
     private String id;
     private String userId;
     private String productId;
-    private String status;
     @NotNull(message = "Quantity không được null")
     @Min(value = 1, message = "Quantity phải >= 1")
     private int quantity;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
 }

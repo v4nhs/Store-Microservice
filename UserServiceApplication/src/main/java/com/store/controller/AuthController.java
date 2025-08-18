@@ -1,6 +1,6 @@
 package com.store.controller;
 
-import com.store.dto.UserDto;
+import com.store.dto.UserDTO;
 import com.store.model.Role;
 import com.store.model.User;
 import com.store.repository.RoleRepository;
@@ -51,8 +51,8 @@ public class AuthController {
                 .orElse(ResponseEntity.status(401).body(Map.of("error", "Invalid credentials")));
     }
     @GetMapping("/admin/{role}")
-    public ResponseEntity<UserDto> getUser(@PathVariable String role) {
-        UserDto user = userService.getUserByUsername(role);
+    public ResponseEntity<UserDTO> getUser(@PathVariable String role) {
+        UserDTO user = userService.getUserByUsername(role);
         return ResponseEntity.ok(user);
     }
 }

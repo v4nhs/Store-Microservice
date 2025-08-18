@@ -22,5 +22,5 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
             "WHERE i.productId = :productId")
     int applyRelease(@Param("productId") String productId, @Param("qty") int qty);
 
-    boolean existsByProductId(String productId);
+    void deleteByProductId(String productId);
 }

@@ -5,6 +5,7 @@ import com.store.dto.OrderDTO;
 import com.store.dto.ProductDTO;
 import com.store.dto.UserDTO;
 import com.store.model.Order;
+import com.store.model.OrderStatus;
 import com.store.repository.OrderRepository;
 import com.store.request.OrderRequest;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class OrderService {
 
     @Transactional(rollbackFor = Exception.class)
     public Order createOrder(OrderRequest request) {
-        log.info("============= CREATE ORDER (SAGA) =============");
+        log.info("============= CREATE ORDER =============");
         if (request.getQuantity() == null || request.getQuantity() < 1) {
             throw new IllegalArgumentException("quantity phải >= 1");
         }
@@ -40,7 +41,7 @@ public class OrderService {
         order.setUserId(request.getUserId());
         order.setProductId(request.getProductId());
         order.setQuantity(request.getQuantity());
-        order.setStatus("PENDING");
+        order.setStatus(OrderStatus.PENDING);
 
         Order saved = orderRepository.save(order);
         log.info("Đã lưu Order PENDING với ID: {}", saved.getId());

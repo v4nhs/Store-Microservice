@@ -29,7 +29,7 @@ public class OrderController {
 
         // Lưu trạng thái vào Redis
         System.out.println("Saving to Redis: key=order:" + order.getId() + ", value=" + order.getStatus());
-        redisTemplate.opsForValue().set("order:" + order.getId(), order.getStatus());
+        redisTemplate.opsForValue().set("order:" + order.getId(), order.getStatus().toString());
 
         return ResponseEntity.ok(order);
     }

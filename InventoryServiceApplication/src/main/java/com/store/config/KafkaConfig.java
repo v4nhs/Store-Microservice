@@ -1,6 +1,7 @@
 package com.store.config;
 
 import com.store.dto.OrderCreated;
+import com.store.dto.ProductCreatedEvent;
 import com.store.dto.ReleaseStock;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -11,9 +12,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +33,39 @@ public class KafkaConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         return props;
     }
+    @Bean(name = "productCreatedKafkaListenerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent> productCreatedKafkaListenerFactory() {
+        JsonDeserializer<ProductCreatedEvent> value = new JsonDeserializer<>(ProductCreatedEvent.class);
+        value.addTrustedPackages("com.store.dto", "*");
+        value.ignoreTypeHeaders();
 
+        var cf = new DefaultKafkaConsumerFactory<>(
+                baseConsumerProps("inventory-product-group"), new StringDeserializer(), value);
+
+        var f = new ConcurrentKafkaListenerContainerFactory<String, ProductCreatedEvent>();
+        f.setConsumerFactory(cf);
+        return f;
+    }
+
+    @Bean(name = {
+            "productCreatedStringFactory",
+            "productUpdatedStringFactory",
+            "productDeletedStringFactory"
+    })
+    public ConcurrentKafkaListenerContainerFactory<String, String> stringKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> f =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        f.setConsumerFactory(productCreatedStringConsumerFactory());
+        // nếu muốn không retry khi deserialization lỗi vì ta tự parse bằng ObjectMapper:
+        f.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(0L, 0)));
+        f.setConcurrency(2);
+        return f;
+    }
+
+
+
+
+    //Order====================================
     @Bean(name = "orderCreatedKafkaListenerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, OrderCreated> orderCreatedKafkaListenerFactory() {
         JsonDeserializer<OrderCreated> value = new JsonDeserializer<>(OrderCreated.class);

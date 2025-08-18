@@ -1,15 +1,18 @@
 package com.store.controller;
 
-import com.store.dto.OrderDto;
-import com.store.dto.ProductDto;
+import com.store.dto.OrderDTO;
+import com.store.dto.ProductDTO;
 import com.store.model.User;
 import com.store.request.OrderRequest;
 import com.store.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.jaxb.SpringDataJaxb;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,37 +27,77 @@ public class UserController {
     }
 
     @GetMapping("/products")
-    public List<ProductDto> getAll() {
+    public List<ProductDTO> getAll() {
         return userService.getAllProducts();
     }
 
     @GetMapping("/products/{id}")
-    public ProductDto get(@PathVariable String id) {
+    public ProductDTO get(@PathVariable("id") String id) {
         return userService.getProductById(id);
     }
-
     @PostMapping("/products")
-    public ProductDto create(@RequestBody ProductDto dto, HttpServletRequest request) {
+    public ProductDTO create(@RequestBody ProductDTO dto, HttpServletRequest request) {
         return userService.createProduct(dto, request);
     }
 
     @PutMapping("/products/{id}")
-    public ProductDto update(@PathVariable String id, @RequestBody ProductDto dto) {
+    public ProductDTO update(@PathVariable("id") String id, @RequestBody ProductDTO dto) {
         return userService.updateProduct(id, dto);
     }
 
+
     @DeleteMapping("/products/{id}")
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable("id") String id) {
         userService.deleteProduct(id);
     }
 
     @PostMapping("/orders")
     public ResponseEntity<String> placeOrder(@RequestBody OrderRequest orderRequest, HttpServletRequest request) {
-        OrderDto dto = new OrderDto();
+        OrderDTO dto = new OrderDTO();
         dto.setProductId(orderRequest.getProductId());
         dto.setQuantity(orderRequest.getQuantity());
 
         String result = userService.placeOrder(dto, request);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<String> checkout(@RequestBody OrderRequest orderRequest, HttpServletRequest request) {
+        String result = userService.checkout(orderRequest, request);
+        return ResponseEntity.ok(result);
+    }
+
+
+    @GetMapping("/products/excel/export")
+    public ResponseEntity<ByteArrayResource> exportProductsExcel(HttpServletRequest request) {
+        byte[] data = userService.exportProductsExcelBytes(request);
+        ByteArrayResource res = new ByteArrayResource(data != null ? data : new byte[0]);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=products.xlsx")
+                .contentLength(data == null ? 0 : data.length)
+                .body(res);
+    }
+
+    @GetMapping("/products/excel/template")
+    public ResponseEntity<ByteArrayResource> templateProductsExcel(HttpServletRequest request) {
+        byte[] data = userService.templateProductsExcelBytes(request);
+        ByteArrayResource res = new ByteArrayResource(data != null ? data : new byte[0]);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=product-template.xlsx")
+                .contentLength(data == null ? 0 : data.length)
+                .body(res);
+    }
+
+    @PostMapping(value = "/products/excel/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> importProductsExcel(@RequestPart("file") MultipartFile file,
+                                                      HttpServletRequest request) {
+        String reportJson = userService.importProductsExcelJson(file, request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(reportJson);
     }
 }

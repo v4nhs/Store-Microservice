@@ -20,6 +20,7 @@
         <module>OrderServiceApplication</module>
         <module>InventoryServiceApplication</module>
         <module>NotificationServiceApplication</module>
+        <module>PaymentServiceApplication</module>
     </modules>
 
     <properties>

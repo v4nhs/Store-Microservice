@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -23,39 +24,30 @@ public class ProductController {
     private final KafkaTemplate kafkaTemplate;
 
     @PostMapping
-    public ProductDTO create(@Valid @RequestBody ProductDTO dto) {
-        return productService.createProduct(dto);
+    public ResponseEntity<ProductDTO> create(@RequestBody ProductDTO dto) {
+        ProductDTO created = productService.createProduct(dto);
+        return ResponseEntity.created(URI.create("/api/products/" + created.getId())).body(created);
     }
 
     @GetMapping
-    public List<ProductDTO> getAll() {
-        return productService.getAllProducts();
+    public ResponseEntity<List<ProductDTO>> getAll() {
+        return ResponseEntity.ok(productService.getAllProducts());
     }
 
     @GetMapping("/{id}")
-    public ProductCreatedEvent getById(@PathVariable String id) {
-        return productService.getProductById(id);
+    public ResponseEntity<ProductDTO> getById(@PathVariable String id) {
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 
     @PutMapping("/{id}")
-    public ProductCreatedEvent update(@PathVariable String id, @RequestBody ProductCreatedEvent dto) {
-        return productService.updateProduct(id, dto);
+    public ResponseEntity<ProductDTO> update(@PathVariable String id, @RequestBody ProductDTO dto) {
+        return ResponseEntity.ok(productService.updateProduct(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
-        if (!productRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        productRepository.deleteById(id);
-        kafkaTemplate.send("product-deleted-topic", new ProductDeletedEvent(id));
+        productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/stock/{productId}")
-    public ResponseEntity<Integer> getProductStock(@PathVariable String productId) {
-        ProductCreatedEvent product = productService.getProductById(productId);
-        return ResponseEntity.ok(product.getQuantity());
     }
 
     @PutMapping("/{productId}/quantity")

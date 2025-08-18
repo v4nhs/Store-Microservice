@@ -5,6 +5,7 @@ import com.store.dto.ReleaseStock;
 import com.store.dto.StockRejected;
 import com.store.dto.StockReserved;
 import com.store.model.Order;
+import com.store.model.OrderStatus;
 import com.store.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OrderSagaListener {
+public class OrderListener {
 
     private final OrderRepository orderRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -44,7 +45,7 @@ public class OrderSagaListener {
         }
 
         Order o = opt.get();
-        String status = o.getStatus();
+        OrderStatus status = o.getStatus();
 
         if ("CONFIRMED".equals(status)) {
             log.info("Order {} đã CONFIRMED trước đó (idempotent). Bỏ qua.", o.getId());
@@ -64,7 +65,7 @@ public class OrderSagaListener {
         }
 
         // PENDING -> confirm
-        o.setStatus("CONFIRMED");
+        o.setStatus(OrderStatus.CONFIRMED);
         orderRepository.save(o);
 
         OrderDTO confirmed = OrderDTO.builder()
@@ -72,7 +73,7 @@ public class OrderSagaListener {
                 .userId(o.getUserId())
                 .productId(o.getProductId())
                 .quantity(o.getQuantity())
-                .status("CONFIRMED")
+                .status(o.getStatus().name())
                 .build();
 
         kafkaTemplate.send("order-confirmed", confirmed);
@@ -94,21 +95,21 @@ public class OrderSagaListener {
         }
 
         Order o = opt.get();
-        String status = o.getStatus();
+        OrderStatus status = o.getStatus();
 
-        if ("CANCELLED".equals(status)) {
+        if (status == OrderStatus.CANCELLED) {
             log.info("Order {} đã CANCELLED trước đó (idempotent). Bỏ qua.", o.getId());
             return;
         }
 
-        if ("CONFIRMED".equals(status)) {
+        if (status == OrderStatus.CONFIRMED) {
             // Out-of-order: đã confirm mà lại rejected -> không hủy ngược
             log.warn("Order {} đang CONFIRMED nhưng nhận rejected. Bỏ qua.", o.getId());
             return;
         }
 
         // PENDING -> cancel
-        o.setStatus("CANCELLED");
+        o.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(o);
 
         OrderDTO cancelled = OrderDTO.builder()
@@ -117,7 +118,7 @@ public class OrderSagaListener {
                 .userId(o.getUserId())
                 .productId(o.getProductId())
                 .quantity(o.getQuantity())
-                .status("CANCELLED")
+                .status(o.getStatus().name())
                 .build();
 
         kafkaTemplate.send("order-cancelled", cancelled);

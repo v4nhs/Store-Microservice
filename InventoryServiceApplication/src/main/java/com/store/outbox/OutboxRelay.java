@@ -53,7 +53,6 @@ public class OutboxRelay {
                         kafka.send("product-stock-decreased", node);
                     }
                     case "ORDER_CONFIRMED" -> {
-                        // noti-service nghe topic này (OrderDTO), gửi JSON object là đủ để Jackson map
                         var node = om.readTree(e.getPayload());
                         kafka.send("order-confirmed", node);
                     }

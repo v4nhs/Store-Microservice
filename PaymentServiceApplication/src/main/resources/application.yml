@@ -1,0 +1,36 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/paymentdb
+    username: root
+    password: admin
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  kafka:
+    bootstrap-servers: localhost:9092
+
+app:
+  currency: VND
+  # Topics tái sử dụng cách đặt tên bạn đang dùng
+  topics:
+    paymentSucceeded: payment.succeeded
+    paymentFailed: payment.failed
+    paymentIntentCreate: payment-intent-create
+  mock:
+    enable: true   # bật trang mockpay/checkout để test local
+
+jwt:
+  secret: Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

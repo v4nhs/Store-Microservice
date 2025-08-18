@@ -57,12 +57,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            // Token hết hạn
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"TOKEN_EXPIRED\",\"message\":\"JWT đã hết hạn\"}");
+            return;
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"UNAUTHORIZED\"}");
             return;
         }
 
         filterChain.doFilter(request, response);
     }
+
 }

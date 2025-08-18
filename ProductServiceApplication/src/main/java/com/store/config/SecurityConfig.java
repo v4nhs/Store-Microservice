@@ -19,6 +19,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/products/excel/**").permitAll()
                         .anyRequest().permitAll()
                 );
 

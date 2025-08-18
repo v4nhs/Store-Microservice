@@ -57,6 +57,112 @@ public class InventoryListener {
             log.info("[INV] Init Redis {} = {} (from DB)", key, dbQty);
         }
     }
+    @KafkaListener(
+            topics = "product-created-topic",
+            groupId = "inventory-group",
+            containerFactory = "productCreatedStringFactory" // dùng StringDeserializer
+    )
+    @Transactional
+    public void handleProductCreated(String message) {
+        try {
+            // Nếu payload bị bọc thêm lớp quote (\"...\"), bỏ bọc trước khi parse
+            String json = (message != null && !message.isEmpty() && message.charAt(0) == '"')
+                    ? om.readValue(message, String.class)
+                    : message;
+
+            ProductCreatedEvent event = om.readValue(json, ProductCreatedEvent.class);
+            log.info("[INV-INIT] ProductCreatedEvent: {}", event);
+
+            // UPSERT inventory theo quantity ban đầu từ product
+            Inventory inv = inventoryRepository.findByProductId(event.getProductId())
+                    .orElseGet(() -> new Inventory(event.getProductId(), 0));
+            int old = inv.getQuantity();
+            inv.setQuantity(Math.max(0, event.getQuantity()));
+            inventoryRepository.save(inv);
+            log.info("[INV-INIT] Upsert inventory productId={}, {} -> {}", event.getProductId(), old, inv.getQuantity());
+
+            // Sync Redis key nếu chưa có / hoặc cập nhật cho khớp DB
+            ensureRedisStockKey(event.getProductId());
+            redis.opsForValue().set(stockKey(event.getProductId()), String.valueOf(inv.getQuantity()));
+            log.info("[INV-INIT] Sync Redis {} = {}", stockKey(event.getProductId()), inv.getQuantity());
+
+        } catch (Exception e) {
+            log.error("[INV-INIT] Failed to process ProductCreatedEvent, payload={}", message, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @KafkaListener(
+            topics = "product-updated-topic",
+            groupId = "inventory-group",
+            containerFactory = "productUpdatedStringFactory" // dùng StringDeserializer
+    )
+    @Transactional
+    public void handleProductUpdated(String message) {
+        try {
+            // Bỏ bọc nếu có
+            String json = (message != null && !message.isEmpty() && message.charAt(0) == '"')
+                    ? om.readValue(message, String.class)
+                    : message;
+
+            ProductUpdateEvent evt = om.readValue(json, ProductUpdateEvent.class);
+            log.info("[INV-UPDATE] ProductUpdateEvent: {}", evt);
+
+            Inventory inv = inventoryRepository.findByProductId(evt.getProductId())
+                    .orElseGet(() -> new Inventory(evt.getProductId(), 0));
+            int old = inv.getQuantity();
+            inv.setQuantity(Math.max(0, evt.getQuantity())); // set theo product
+            inventoryRepository.save(inv);
+            log.info("[INV-UPDATE] Sync quantity productId={} | {} -> {}", evt.getProductId(), old, inv.getQuantity());
+
+            // Sync Redis cho khớp DB
+            ensureRedisStockKey(evt.getProductId());
+            redis.opsForValue().set(stockKey(evt.getProductId()), String.valueOf(inv.getQuantity()));
+            log.info("[INV-UPDATE] Sync Redis {} = {}", stockKey(evt.getProductId()), inv.getQuantity());
+
+        } catch (Exception e) {
+            log.error("[INV-UPDATE] Failed to process ProductUpdateEvent, payload={}", message, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @KafkaListener(
+            topics = "product-deleted-topic",
+            groupId = "inventory-group",
+            containerFactory = "productDeletedStringFactory" // factory dùng StringDeserializer
+    )
+    @Transactional
+    public void handleProductDeleted(String message) {
+        try {
+            // Nếu payload bị bọc thêm lớp quote (\"...\"), bỏ bọc rồi mới parse
+            String json = (message != null && !message.isEmpty() && message.charAt(0) == '"')
+                    ? om.readValue(message, String.class)
+                    : message;
+
+            ProductCreatedEvent evt = om.readValue(json, ProductCreatedEvent.class);
+            String productId = evt.getProductId();
+            if (productId == null || productId.isBlank()) {
+                log.warn("[INV-DEL] productId rỗng trong payload: {}", message);
+                return;
+            }
+
+            // Xoá inventory record
+            inventoryRepository.findByProductId(productId).ifPresent(inv -> {
+                inventoryRepository.delete(inv);
+                log.info("[INV-DEL] Deleted inventory for productId={}", productId);
+            });
+
+            // Xoá Redis key
+            String key = stockKey(productId);
+            redis.delete(key);
+            log.info("[INV-DEL] Deleted Redis key {}", key);
+
+        } catch (Exception e) {
+            log.error("[INV-DEL] Failed to process ProductDeletedEvent, payload={}", message, e);
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @KafkaListener(
             topics = "order-created",
