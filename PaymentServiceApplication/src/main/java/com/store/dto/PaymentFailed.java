@@ -1,13 +1,14 @@
 package com.store.dto;
 
 import lombok.*;
-@Data
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReleaseStock {
+public class PaymentFailed {
     private String orderId;
-    private String productId;
-    private int quantity;
+    private String paymentId;
     private String reason;
 }

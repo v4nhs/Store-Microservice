@@ -1,9 +1,10 @@
 package com.store.controller;
 
 import com.store.dto.OrderDTO;
+import com.store.dto.PaymentRequest;
 import com.store.dto.ProductDTO;
 import com.store.model.User;
-import com.store.request.OrderRequest;
+import com.store.dto.request.OrderRequest;
 import com.store.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    @GetMapping("/ping") public String ping(){ return "ok"; }
     @GetMapping
     public List<User> getAllUser(){
         return userService.getAllUser();
@@ -60,13 +62,34 @@ public class UserController {
         String result = userService.placeOrder(dto, request);
         return ResponseEntity.ok(result);
     }
-
-    @PostMapping("/checkout")
-    public ResponseEntity<String> checkout(@RequestBody OrderRequest orderRequest, HttpServletRequest request) {
-        String result = userService.checkout(orderRequest, request);
+    @PostMapping("/orders/multi")
+    public ResponseEntity<String> placeOrderMulti(@RequestBody List<OrderDTO> items, HttpServletRequest request) {
+        String result = userService.placeOrderMulti(items, request);
         return ResponseEntity.ok(result);
     }
 
+
+    @GetMapping("/orders")
+    public List<OrderDTO> getAllOrder() {
+        return userService.getAllOrder();
+    }
+
+    @GetMapping("/orders/{id}")
+    public OrderDTO getOrderById(@PathVariable("id") String id) {
+        return userService.getOrderById(id);
+    }
+
+    @PostMapping("/orders/pay")
+    public ResponseEntity<String> payOrder(@RequestBody PaymentRequest requestBody,
+                                           HttpServletRequest httpRequest) {
+
+        String orderId = requestBody.getOrderId();
+        String idempotencyKey = requestBody.getIdempotencyKey();
+
+        return ResponseEntity.ok(
+                userService.payOrder(orderId, idempotencyKey, httpRequest)
+        );
+    }
 
     @GetMapping("/products/excel/export")
     public ResponseEntity<ByteArrayResource> exportProductsExcel(HttpServletRequest request) {

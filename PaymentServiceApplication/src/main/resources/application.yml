@@ -1,6 +1,10 @@
 server:
   port: 8086
 
+order:
+  service:
+    base-url: http://order-service
+
 spring:
   application:
     name: payment-service
@@ -16,9 +20,14 @@ spring:
     open-in-view: false
   kafka:
     bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+        spring.json.trusted.packages: "com.store.dto.*"
 
 app:
-  currency: VND
   # Topics tái sử dụng cách đặt tên bạn đang dùng
   topics:
     paymentSucceeded: payment.succeeded

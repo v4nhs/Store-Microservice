@@ -1,7 +1,7 @@
 package com.store.config;
 
-import com.store.dto.StockRejected;
-import com.store.dto.StockReserved;
+import com.store.event.StockRejected;
+import com.store.event.StockReserved;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;

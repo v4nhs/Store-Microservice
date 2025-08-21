@@ -7,6 +7,7 @@ import com.store.model.Inventory;
 import com.store.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
+    private final StringRedisTemplate redis;
     private final ObjectMapper om = new ObjectMapper();
+
+    private String stockKey(String productId) { return "stock:" + productId; }
 
     @KafkaListener(
             topics = "product-created-topic",
@@ -31,8 +35,12 @@ public class InventoryService {
                     ? om.readValue(payload, String.class)
                     : payload;
 
-            ProductCreatedEvent evt = om.readValue(payload, ProductCreatedEvent.class);
+            ProductCreatedEvent evt = om.readValue(json, ProductCreatedEvent.class);
             String productId = evt.getProductId();
+            if (productId == null || productId.isBlank()) {
+                log.warn("[INV-INIT] productId rỗng trong payload: {}", payload);
+                return;
+            }
             int initialQty = Math.max(0, evt.getQuantity());
 
             Inventory inv = inventoryRepository.findByProductId(productId)
@@ -42,11 +50,14 @@ public class InventoryService {
             inv.setQuantity(initialQty);
             inventoryRepository.save(inv);
 
-            log.info("[INV-INIT] Upsert inventory productId={}, {} -> {}", productId, old, initialQty);
+            redis.opsForValue().set(stockKey(productId), String.valueOf(initialQty));
+
+            log.info("[INV-INIT] Upsert inventory productId={}, {} -> {} (Redis OK)", productId, old, initialQty);
         } catch (Exception e) {
             log.error("[INV-INIT] Cannot handle product-created payload: {}", payload, e);
         }
     }
+
     @KafkaListener(
             topics = "product-updated-topic",
             groupId = "inventory-sync-group",
@@ -59,8 +70,12 @@ public class InventoryService {
                     ? om.readValue(payload, String.class)
                     : payload;
 
-            ProductUpdateEvent evt = om.readValue(payload, ProductUpdateEvent.class);
+            ProductUpdateEvent evt = om.readValue(json, ProductUpdateEvent.class);
             String productId = evt.getProductId();
+            if (productId == null || productId.isBlank()) {
+                log.warn("[INV-UPDATE] productId rỗng trong payload: {}", payload);
+                return;
+            }
             int newQty = Math.max(0, evt.getQuantity());
 
             Inventory inv = inventoryRepository.findByProductId(productId)
@@ -70,7 +85,9 @@ public class InventoryService {
             inv.setQuantity(newQty);
             inventoryRepository.save(inv);
 
-            log.info("[INV-UPDATE] Sync quantity productId={} | {} -> {}", productId, old, newQty);
+            redis.opsForValue().set(stockKey(productId), String.valueOf(newQty));
+
+            log.info("[INV-UPDATE] Sync quantity productId={} | {} -> {} (Redis OK)", productId, old, newQty);
         } catch (Exception e) {
             log.error("[INV-UPDATE] Cannot handle payload: {}", payload, e);
         }
@@ -84,10 +101,22 @@ public class InventoryService {
     @Transactional
     public void onProductDeleted(String payload) {
         try {
-            ProductCreatedEvent evt = om.readValue(payload, ProductCreatedEvent.class);
+            String json = (payload != null && !payload.isEmpty() && payload.charAt(0) == '"')
+                    ? om.readValue(payload, String.class)
+                    : payload;
+
+            ProductCreatedEvent evt = om.readValue(json, ProductCreatedEvent.class);
             String productId = evt.getProductId();
+            if (productId == null || productId.isBlank()) {
+                log.warn("[INV-DELETE] productId rỗng trong payload: {}", payload);
+                return;
+            }
+
             inventoryRepository.findByProductId(productId).ifPresent(inventoryRepository::delete);
-            log.info("[INV-DELETE] Deleted inventory for productId={}", productId);
+
+            redis.delete(stockKey(productId));
+
+            log.info("[INV-DELETE] Deleted inventory & Redis for productId={}", productId);
         } catch (Exception e) {
             log.error("[INV-DELETE] Cannot handle payload: {}", payload, e);
             throw new RuntimeException(e);

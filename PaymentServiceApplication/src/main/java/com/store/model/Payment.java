@@ -3,46 +3,57 @@ package com.store.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.math.BigDecimal;
 import java.time.Instant;
 
+
 @Entity
-@Table(name = "payments",
-        indexes = {
-                @Index(name="ux_payment_order", columnList="orderId", unique = true),
-                @Index(name="ux_payment_idem",  columnList="idempotencyKey", unique = true)
-        })
-@Data
-@Builder
+@Table(name="payments")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    @Column(nullable=false)
+    @Column(nullable = false, unique = true)
     private String orderId;
-    @Column(nullable=false)
-    private String userId;
-    @Column(nullable=false)
-    private Long amount;
-    @Column(nullable=false)
-    private String currency;
+
+    @Column(nullable = false)
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable=false)
-    private PaymentStatus status; // PENDING|SUCCEEDED|FAILED
+    @Column(nullable = false)
+    private PaymentStatus status;
 
-    private String gatewayTxnId;
+    @Column(length = 128)
+    private String idempotencyKey;
 
-    @Column(length=128)
-    private String idempotencyKey; // <- chống trùng
-    @Column(nullable=false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private PaymentMethod method;
+
+    @Column(length = 32)
+    private String provider;
+
+    @Column(length = 128)
+    private String transactionRef;
+
+    @CreationTimestamp
     private Instant createdAt;
-    @Column(nullable=false)
+    @UpdateTimestamp
     private Instant updatedAt;
 
-    public boolean isTerminal() {
-        return status==PaymentStatus.SUCCEEDED || status==PaymentStatus.FAILED;
+    @PrePersist
+    public void prePersist() {
+        if (status == null) status = PaymentStatus.PENDING;
+        if (method == null) method = PaymentMethod.COD;
     }
+
 }

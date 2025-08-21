@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -107,8 +108,7 @@ public class ProductService {
     @Transactional
     public void deleteProduct(String id) {
         productRepository.deleteById(id);
-        // publish deleted (chỉ cần productId)
-        sendJson("product-deleted-topic", new ProductCreatedEvent(id, null, 0.0, 0));
+        sendJson("product-deleted-topic", new ProductCreatedEvent(id, null, BigDecimal.valueOf(0.0), 0));
     }
 
     private ProductCreatedEvent mapToDto(Product product) {

@@ -2,13 +2,12 @@ package com.store.service;
 
 
 import com.store.dto.OrderDTO;
-import com.store.dto.PaymentRequest;
 import com.store.dto.ProductDTO;
 import com.store.dto.UserDTO;
 import com.store.model.Order;
 import com.store.model.User;
 import com.store.repository.UserRepository;
-import com.store.request.OrderRequest;
+import com.store.dto.request.OrderRequest;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,12 +20,17 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -101,7 +105,7 @@ public class UserService {
 
     public String placeOrder(OrderDTO dto, HttpServletRequest request) {
         try {
-            String token = request.getHeader("Authorization"); // Lấy token từ request thay vì dto
+            String token = request.getHeader("Authorization");
             if (token != null && token.startsWith("Bearer ")) {
                 token = token.substring(7);
             }
@@ -150,61 +154,136 @@ public class UserService {
         }
     }
 
-    public String checkout(OrderRequest orderRequest, HttpServletRequest request) {
+    public String placeOrderMulti(List<OrderDTO> items, HttpServletRequest request) {
         try {
-            String token = request.getHeader("Authorization");
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
+            if (items == null || items.isEmpty()) {
+                return "Danh sách sản phẩm trống";
             }
 
-            Claims claims = Jwts.parser()
-                    .setSigningKey("Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM")
-                    .parseClaimsJws(token)
-                    .getBody();
-            String userId = claims.get("userId", String.class);
+            String rawAuth = request.getHeader("Authorization");
+            String bare = rawAuth;
+            if (bare != null && bare.startsWith("Bearer ")) bare = bare.substring(7);
 
-            // 1. Gửi request thanh toán sang payment-service
-            PaymentRequest paymentRequest = new PaymentRequest();
-            paymentRequest.setUserId(userId);
-            paymentRequest.setAmount(orderRequest.getQuantity() * 100.0); // ví dụ đơn giản
+            String userId = null;
+            try {
+                if (bare != null && !bare.isBlank()) {
+                    Claims claims = Jwts.parser()
+                            .setSigningKey("Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM")
+                            .parseClaimsJws(bare)
+                            .getBody();
+                    userId = claims.get("userId", String.class);
+                }
+            } catch (Exception ignore) {
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + token);
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            }
 
-            HttpEntity<PaymentRequest> paymentEntity = new HttpEntity<>(paymentRequest, headers);
-            ResponseEntity<String> paymentResponse = restTemplate.exchange(
-                    "http://payment-service/api/payments",
+            MultiOrderRequest payload = new MultiOrderRequest();
+            payload.setUserId(userId);
+            List<MultiOrderRequest.Item> reqItems = new ArrayList<>();
+            for (OrderDTO dto : items) {
+                if (dto.getProductId() == null || dto.getProductId().isBlank() || dto.getQuantity() == null || dto.getQuantity() < 1) {
+                    return "Sản phẩm không hợp lệ (productId/quantity)";
+                }
+                MultiOrderRequest.Item it = new MultiOrderRequest.Item();
+                it.setProductId(dto.getProductId());
+                it.setQuantity(dto.getQuantity());
+                reqItems.add(it);
+            }
+            payload.setItems(reqItems);
+
+            HttpHeaders headers = createAuthHeaders(request); // forward Authorization
+            HttpEntity<MultiOrderRequest> entity = new HttpEntity<>(payload, headers);
+
+            logger.info("Đang gửi request tới order-service (multi) với {} items...", reqItems.size());
+            ResponseEntity<Order> response = restTemplate.exchange(
+                    "http://order-service/api/orders/multi",
                     HttpMethod.POST,
-                    paymentEntity,
-                    String.class
+                    entity,
+                    Order.class
             );
 
-            if (paymentResponse.getStatusCode() == HttpStatus.OK) {
-                // 2. Nếu thanh toán thành công thì tạo order
-                orderRequest.setUserId(userId);
-                HttpEntity<OrderRequest> orderEntity = new HttpEntity<>(orderRequest, headers);
+            Order order = response.getBody();
+            if (order == null) return "Order creation failed";
 
-                ResponseEntity<Order> orderResponse = restTemplate.exchange(
-                        "http://order-service/api/orders",
-                        HttpMethod.POST,
-                        orderEntity,
-                        Order.class
-                );
-
-                Order order = orderResponse.getBody();
-                return order != null ? order.toString() : "Order creation failed";
-            } else {
-                return "Payment failed, order not created";
-            }
-
+            BigDecimal total = order.getTotalAmount();
+            return "Created order id=" + order.getId() + ", status=" + order.getStatus() + ", total=" + (total != null ? total : BigDecimal.ZERO);
+        } catch (HttpClientErrorException e) {
+            logger.error("Đặt hàng (multi) thất bại ({}): {}", e.getStatusCode().value(), e.getResponseBodyAsString(), e);
+            return "Order creation failed: " + e.getStatusCode().value() + " " + e.getStatusText();
         } catch (Exception e) {
-            logger.error("Checkout thất bại: {}", e.getMessage(), e);
-            return "Checkout failed due to internal error";
+            logger.error("Đặt hàng (multi) thất bại: {}", e.getMessage(), e);
+            return "Order creation failed due to error";
         }
     }
 
+    // Payload tối thiểu khớp với /api/orders/multi của order-service
+    public static class MultiOrderRequest {
+        private String userId;
+        private List<Item> items;
 
+        public String getUserId() { return userId; }
+        public void setUserId(String userId) { this.userId = userId; }
+        public List<Item> getItems() { return items; }
+        public void setItems(List<Item> items) { this.items = items; }
+
+        public static class Item {
+            private String productId;
+            private Integer quantity;
+
+            public String getProductId() { return productId; }
+            public void setProductId(String productId) { this.productId = productId; }
+            public Integer getQuantity() { return quantity; }
+            public void setQuantity(Integer quantity) { this.quantity = quantity; }
+        }
+    }
+
+    public List<OrderDTO> getAllOrder() {
+        ResponseEntity<List<OrderDTO>> response = restTemplate.exchange(
+                "http://order-service/api/orders",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<>() {});
+        return response.getBody();
+    }
+
+    public OrderDTO getOrderById(String id) {
+        return restTemplate.getForObject("http://order-service/api/orders/" + id, OrderDTO.class);
+    }
+
+    public String payOrder(String orderId, String idempotencyKey, HttpServletRequest request) {
+        try {
+            String token = request.getHeader("Authorization");
+            if (token != null && token.startsWith("Bearer ")) token = token.substring(7);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            if (token != null && !token.isBlank()) headers.setBearerAuth(token);
+            if (idempotencyKey != null && !idempotencyKey.isBlank()) headers.set("Idempotency-Key", idempotencyKey);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("orderId", orderId);
+            body.put("amount", null);                      // để payment-service tự lấy từ order-service
+            body.put("idempotencyKey", idempotencyKey);
+            body.put("method", "MOMO");                    // 👈 THÊM
+            body.put("provider", "MOMO");                  // 👈 tuỳ chọn
+            body.put("returnUrl", "http://localhost:8086/pay/redirect"); // 👈 tuỳ chọn
+
+            // log để soi payload gửi đi
+            log.info("[USER→PAY] {}", new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            String payUrl = "http://payment-service/api/payments/pay";
+            ResponseEntity<String> payRes = restTemplate.exchange(payUrl, HttpMethod.POST, entity, String.class);
+            return payRes.getBody();
+        } catch (HttpClientErrorException e) {
+            logger.error("Thanh toán thất bại ({}): {}", e.getStatusCode().value(), e.getResponseBodyAsString(), e);
+            return "Payment failed: " + e.getStatusCode().value() + " " + e.getStatusText();
+        } catch (Exception e) {
+            logger.error("Thanh toán thất bại: {}", e.getMessage(), e);
+            return "Payment failed due to error";
+        }
+    }
     public byte[] exportProductsExcelBytes(HttpServletRequest request) {
         HttpHeaders headers = createAuthHeaders(request);
         HttpEntity<Void> entity = new HttpEntity<>(headers);

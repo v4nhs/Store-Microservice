@@ -2,10 +2,10 @@ package com.store.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.store.dto.*;
-import com.store.model.OutboxEvent;
-import com.store.repository.OutboxRepository;
-import com.store.repository.InventoryRepository;
 import com.store.model.Inventory;
+import com.store.model.OutboxEvent;
+import com.store.repository.InventoryRepository;
+import com.store.repository.OutboxRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -42,8 +42,10 @@ public class InventoryListener {
         this.inventoryRepository = inventoryRepository;
     }
 
-    private String stockKey(String productId){ return "stock:" + productId; }
-    private String seenKey(String orderId){ return "order:seen:" + orderId; }
+    /* ==================== Helpers ==================== */
+
+    private String stockKey(String productId) { return "stock:" + productId; }
+    private String seenKeyItem(String orderId, String productId) { return "order:seen:" + orderId + "#" + productId; }
 
     // Khởi tạo Redis từ DB nếu key chưa có
     private void ensureRedisStockKey(String productId) {
@@ -57,6 +59,76 @@ public class InventoryListener {
             log.info("[INV] Init Redis {} = {} (from DB)", key, dbQty);
         }
     }
+
+    private void reserveOneItem(String orderId, String userId, String productId, int quantity) {
+        ensureRedisStockKey(productId);
+
+        var keys = List.of(stockKey(productId), seenKeyItem(orderId, productId));
+        var args = List.of(orderId + "#" + productId, String.valueOf(quantity), "600"); // TTL idempotency 10 phút
+
+        Long res = redis.execute(reserveScript, keys, args.toArray()); // 1=OK, 0=insufficient, 2=duplicate
+        try {
+            if (res != null && res == 1L) {
+                // 1) STOCK_RESERVED (per item)
+                var reserved = StockReserved.builder()
+                        .orderId(orderId)
+                        .productId(productId)
+                        .quantity(quantity)
+                        .build();
+                outboxRepo.save(OutboxEvent.builder()
+                        .aggregateType("order")
+                        .aggregateId(orderId)
+                        .eventType("STOCK_RESERVED")
+                        .payload(om.writeValueAsString(reserved))
+                        .status("NEW")
+                        .build());
+
+                // 2) PRODUCT_STOCK_DECREASED (per item) – cho product-service trừ DB kho chính
+                outboxRepo.save(OutboxEvent.builder()
+                        .aggregateType("product")
+                        .aggregateId(productId)
+                        .eventType("PRODUCT_STOCK_DECREASED")
+                        .payload(om.writeValueAsString(Map.of(
+                                "productId", productId,
+                                "quantity", quantity
+                        )))
+                        .status("NEW")
+                        .build());
+
+                log.info("[INV] Reserved OK productId={}, qty={} (orderId={})", productId, quantity, orderId);
+
+                // ❌ Không phát ORDER_CONFIRMED ở inventory: OrderService sẽ confirm khi all items RESERVED.
+
+            } else if (res != null && res == 2L) {
+                log.info("[INV] Skip duplicate orderId#productId={}#{}", orderId, productId);
+
+            } else {
+                // STOCK_REJECTED (per item)
+                var rejected = StockRejected.builder()
+                        .orderId(orderId)
+                        .productId(productId)
+                        .requested(quantity)
+                        .reason("INSUFFICIENT_STOCK")
+                        .build();
+                outboxRepo.save(OutboxEvent.builder()
+                        .aggregateType("order")
+                        .aggregateId(orderId)
+                        .eventType("STOCK_REJECTED")
+                        .payload(om.writeValueAsString(rejected))
+                        .status("NEW")
+                        .build());
+
+                log.info("[INV] Insufficient stock productId={}, need={} (orderId={})", productId, quantity, orderId);
+                // ❌ Không tự ORDER_CANCELLED: OrderService sẽ tổng hợp & phát release-stock nếu cần.
+            }
+        } catch (Exception e) {
+            log.error("[INV] reserveOneItem failed", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /* ==================== Product sync (giữ nguyên logic của bạn) ==================== */
+
     @KafkaListener(
             topics = "product-created-topic",
             groupId = "inventory-group",
@@ -81,7 +153,7 @@ public class InventoryListener {
             inventoryRepository.save(inv);
             log.info("[INV-INIT] Upsert inventory productId={}, {} -> {}", event.getProductId(), old, inv.getQuantity());
 
-            // Sync Redis key nếu chưa có / hoặc cập nhật cho khớp DB
+            // Sync Redis key
             ensureRedisStockKey(event.getProductId());
             redis.opsForValue().set(stockKey(event.getProductId()), String.valueOf(inv.getQuantity()));
             log.info("[INV-INIT] Sync Redis {} = {}", stockKey(event.getProductId()), inv.getQuantity());
@@ -163,6 +235,7 @@ public class InventoryListener {
         }
     }
 
+    /* ==================== Order reserve/release ==================== */
 
     @KafkaListener(
             topics = "order-created",
@@ -170,102 +243,27 @@ public class InventoryListener {
             containerFactory = "orderCreatedKafkaListenerFactory")
     @Transactional
     public void onOrderCreated(OrderCreated evt) {
-        if (evt.getQuantity() <= 0) {
-            log.warn("[INV] Bỏ qua order {}, quantity không hợp lệ: {}", evt.getOrderId(), evt.getQuantity());
-            return;
-        }
         log.info("[INV] Received order-created: {}", evt);
 
-        ensureRedisStockKey(evt.getProductId());
-
-        var keys = List.of(stockKey(evt.getProductId()), seenKey(evt.getOrderId()));
-        var args = List.of(evt.getOrderId(), String.valueOf(evt.getQuantity()), "600"); // TTL idempotency 10p
-
-        Long res = redis.execute(reserveScript, keys, args.toArray()); // 1=OK, 0=insufficient, 2=duplicate
-        try {
-            if (res != null && res == 1L) {
-                // 1) STOCK_RESERVED
-                var reserved = StockReserved.builder()
-                        .orderId(evt.getOrderId())
-                        .productId(evt.getProductId())
-                        .quantity(evt.getQuantity())
-                        .build();
-                outboxRepo.save(OutboxEvent.builder()
-                        .aggregateType("order")
-                        .aggregateId(evt.getOrderId())
-                        .eventType("STOCK_RESERVED")
-                        .payload(om.writeValueAsString(reserved))
-                        .status("NEW")
-                        .build());
-
-                // 2) PRODUCT_STOCK_DECREASED (cho product-service trừ DB product)
-                outboxRepo.save(OutboxEvent.builder()
-                        .aggregateType("product")
-                        .aggregateId(evt.getProductId())
-                        .eventType("PRODUCT_STOCK_DECREASED")
-                        .payload(om.writeValueAsString(Map.of(
-                                "productId", evt.getProductId(),
-                                "quantity", evt.getQuantity()
-                        )))
-                        .status("NEW")
-                        .build());
-
-                // 3) ORDER_CONFIRMED (để noti-service gửi mail)
-                outboxRepo.save(OutboxEvent.builder()
-                        .aggregateType("order")
-                        .aggregateId(evt.getOrderId())
-                        .eventType("ORDER_CONFIRMED")
-                        .payload(om.writeValueAsString(Map.of(
-                                "orderId", evt.getOrderId(),
-                                "userId", evt.getUserId(),
-                                "productId", evt.getProductId(),
-                                "quantity", evt.getQuantity(),
-                                "status", "CONFIRMED"
-                        )))
-                        .status("NEW")
-                        .build());
-
-                log.info("[INV] Reserved OK by Lua for productId={}, qty={}", evt.getProductId(), evt.getQuantity());
-
-            } else if (res != null && res == 2L) {
-                log.info("[INV] Skip duplicate orderId={} (idempotent)", evt.getOrderId());
-
-            } else {
-                var rejected = StockRejected.builder()
-                        .orderId(evt.getOrderId())
-                        .productId(evt.getProductId())
-                        .requested(evt.getQuantity())
-                        .reason("INSUFFICIENT_STOCK")
-                        .build();
-                outboxRepo.save(OutboxEvent.builder()
-                        .aggregateType("order")
-                        .aggregateId(evt.getOrderId())
-                        .eventType("STOCK_REJECTED")
-                        .payload(om.writeValueAsString(rejected))
-                        .status("NEW")
-                        .build());
-
-                // 4) ORDER_CANCELLED (để noti-service gửi mail)
-                outboxRepo.save(OutboxEvent.builder()
-                        .aggregateType("order")
-                        .aggregateId(evt.getOrderId())
-                        .eventType("ORDER_CANCELLED")
-                        .payload(om.writeValueAsString(Map.of(
-                                "orderId", evt.getOrderId(),
-                                "userId", evt.getUserId(),
-                                "productId", evt.getProductId(),
-                                "quantity", evt.getQuantity(),
-                                "status", "CANCELLED"
-                        )))
-                        .status("NEW")
-                        .build());
-
-                log.info("[INV] Insufficient stock for productId={}, need={}", evt.getProductId(), evt.getQuantity());
-            }
-        } catch (Exception e) {
-            log.error("[INV] onOrderCreated failed", e);
-            throw new RuntimeException(e);
+        // Multi-items path
+        if (evt.getItems() != null && !evt.getItems().isEmpty()) {
+            evt.getItems().forEach(it -> {
+                if (it.getQuantity() == null || it.getQuantity() <= 0) {
+                    log.warn("[INV] Bỏ qua item quantity không hợp lệ: orderId={}, productId={}, qty={}",
+                            evt.getOrderId(), it.getProductId(), it.getQuantity());
+                    return;
+                }
+                reserveOneItem(evt.getOrderId(), evt.getUserId(), it.getProductId(), it.getQuantity());
+            });
+            return;
         }
+
+        // Fallback: schema cũ (1 item trong event)
+        if (evt.getProductId() == null || evt.getQuantity() == null || evt.getQuantity() <= 0) {
+            log.warn("[INV] Bỏ qua orderId={} vì payload schema cũ không hợp lệ.", evt.getOrderId());
+            return;
+        }
+        reserveOneItem(evt.getOrderId(), evt.getUserId(), evt.getProductId(), evt.getQuantity());
     }
 
     @KafkaListener(
@@ -278,8 +276,8 @@ public class InventoryListener {
 
         ensureRedisStockKey(evt.getProductId());
 
-        var keys = List.of(stockKey(evt.getProductId()), seenKey(evt.getOrderId()));
-        var args = List.of(evt.getOrderId(), String.valueOf(evt.getQuantity()));
+        var keys = List.of(stockKey(evt.getProductId()), seenKeyItem(evt.getOrderId(), evt.getProductId()));
+        var args = List.of(evt.getOrderId() + "#" + evt.getProductId(), String.valueOf(evt.getQuantity()));
         redis.execute(releaseScript, keys, args.toArray());
 
         try {
@@ -299,6 +297,6 @@ public class InventoryListener {
             throw new RuntimeException(e);
         }
 
-        log.info("[INV] Released {} for productId={}", evt.getQuantity(), evt.getProductId());
+        log.info("[INV] Released {} for productId={} (orderId={})", evt.getQuantity(), evt.getProductId(), evt.getOrderId());
     }
 }

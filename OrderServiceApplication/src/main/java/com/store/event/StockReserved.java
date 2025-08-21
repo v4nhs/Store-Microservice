@@ -1,13 +1,12 @@
-package com.store.dto;
+package com.store.event;
 
 import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StockRejected {
+public class StockReserved {
     private String orderId;
     private String productId;
-    private int requested;
-    private String reason;
+    private int quantity;
 }

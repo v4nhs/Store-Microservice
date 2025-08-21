@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -42,7 +43,7 @@ public class ProductExcelService {
 
             for (var r : parsed.rows()) {
                 try {
-                    Double price = r.price() == null ? 0.0 : r.price();
+                    BigDecimal price = r.price() == null ? BigDecimal.valueOf(0.0) : r.price();
                     int qty = r.quantity() == null ? 0 : r.quantity();
 
                     if (r.id() == null || r.id().isBlank()) {

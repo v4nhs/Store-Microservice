@@ -11,15 +11,16 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class OutboxEvent {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String aggregateType;
-    private String aggregateId;     // orderId
-    private String eventType;       // STOCK_RESERVED / STOCK_REJECTED / STOCK_RELEASED
+    private String aggregateId;
+    private String eventType;
     @Lob
     private String payload;
-    private String status;          // NEW / SENT / FAILED
+    private String status;
     @Lob
     private String lastError;
 }

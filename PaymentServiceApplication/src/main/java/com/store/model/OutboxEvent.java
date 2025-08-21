@@ -2,39 +2,44 @@ package com.store.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.Instant;
 
 @Entity
-@Table(name="outbox_events",
-        indexes={
-            @Index(name="idx_outbox_status", columnList="status"),
-            @Index(name="idx_outbox_created", columnList="createdAt")
-        })
+@Table(name="outbox_events")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class OutboxEvent {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;                    // dùng để orderByIdAsc
 
-    // Tham chiếu
-    @Column(nullable=false)
-    private String aggregateType; // "PAYMENT"
-    @Column(nullable=false)
-    private String aggregateId;   // payment.id hoặc orderId
+    @Column(nullable = false)
+    private String aggregateId;         // paymentId
 
-    // Loại event: PAYMENT_SUCCEEDED | PAYMENT_FAILED
-    @Column(nullable=false)
-    private String eventType;
+    @Column(nullable = false)
+    private String aggregateType;       // "PAYMENT"
 
-    @Lob @Column(nullable=false)
+    @Column(nullable = false)
+    private String eventType;           // "PAYMENT_SUCCESS" | "PAYMENT_FAILED"
+
+    @Lob
+    @Column(nullable = false)
     private String payload;
 
-    @Column(nullable=false)
-    private String status; // NEW|SENT|FAILED
-    @Column(nullable=false)
-    private Instant createdAt;
-    private Instant publishedAt;
+    @Column(nullable = false)
+    private String status;              // "NEW" | "SENT" | "FAILED"
+
     private String lastError;
+
+    @CreationTimestamp
+    private Instant createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) status = "NEW";
+    }
 }

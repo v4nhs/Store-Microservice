@@ -32,9 +32,9 @@ spring:
   mail:
     host: sandbox.smtp.mailtrap.io
     port: 587
-    username: 6db3dd4741e152
-    password: 6448884bc58d26
-    from: test@example.com
+    username: bb16b433672484
+    password: b630b7ab4953b5
+    from: from@example.com
     properties:
       mail:
         smtp:

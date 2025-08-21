@@ -1,9 +1,10 @@
 package com.store.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,7 +12,18 @@ import lombok.NoArgsConstructor;
 public class OrderCreated {
     private String orderId;
     private String userId;
+    private BigDecimal totalAmount;
+    @Singular("item")
+    private List<Item> items;
     private String productId;
     private Integer quantity;
+    @Getter @Setter
+    @NoArgsConstructor @AllArgsConstructor
+    @Builder
+    public static class Item {
+        private String productId;
+        private Integer quantity;
+        private BigDecimal unitPrice;
+    }
 }
 

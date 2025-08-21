@@ -4,25 +4,33 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String userId;
-    private String productId;
-    @NotNull(message = "Quantity không được null")
-    @Min(value = 1, message = "Quantity phải >= 1")
-    private int quantity;
+    @Column(precision = 38, scale = 10)
+    private BigDecimal totalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    private List<OrderItem> items = new ArrayList<>();
+    public void addItem(OrderItem item) {
+        item.setOrder(this);
+        items.add(item);
+    }
 }

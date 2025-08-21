@@ -1,6 +1,8 @@
 package com.store.outbox;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.store.dto.PaymentFailed;
+import com.store.dto.PaymentSucceeded;
 import com.store.model.OutboxEvent;
 import com.store.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,16 +30,29 @@ public class OutboxRelay {
     @Scheduled(fixedDelay = 500)
     @Transactional
     public void flush() {
-        var batch = repo.findTop100ByStatusOrderByIdAsc("NEW");
-        for (var e: batch) {
+        List<OutboxEvent> batch = repo.findTop100ByStatusOrderByIdAsc("NEW");
+        if (batch.isEmpty()) return;
+
+        for (OutboxEvent e : batch) {
             try {
                 switch (e.getEventType()) {
-                    case "PAYMENT_SUCCEEDED" -> kafka.send("payment.succeeded", om.readTree(e.getPayload()));
-                    case "PAYMENT_FAILED"    -> kafka.send("payment.failed",    om.readTree(e.getPayload()));
+                    case "PAYMENT_SUCCESS" -> {
+                        PaymentSucceeded evt = om.readValue(e.getPayload(), PaymentSucceeded.class);
+                        kafka.send("payment-success", evt);
+                        kafka.send("payment-succeeded", evt);
+                    }
+                    case "PAYMENT_FAILED" -> {
+                        PaymentFailed evt = om.readValue(e.getPayload(), PaymentFailed.class);
+                        kafka.send("payment-failed", evt);
+                    }
+                    default -> log.warn("Unknown eventType: {}", e.getEventType());
                 }
-                e.setStatus("SENT"); e.setPublishedAt(Instant.now());
+                e.setStatus("SENT");
+                e.setLastError(null);
             } catch (Exception ex) {
-                e.setStatus("FAILED"); e.setLastError(ex.getMessage());
+                e.setStatus("FAILED");
+                e.setLastError(ex.getMessage());
+                log.error("Publish outbox id={} failed: {}", e.getId(), ex.getMessage());
             }
         }
         repo.saveAll(batch);

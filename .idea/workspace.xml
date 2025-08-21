@@ -5,55 +5,85 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd7e30ae-3d9e-4eac-8ca2-df2c97d27524" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/ProductUpdateEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/model/OrderStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/PaymentServiceApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/KafkaConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/SecurityConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/OutboxEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/Payment.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/outbox/OutboxRelay.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/repository/OutboxRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/repository/PaymentRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/security/JwtAuthenticationFilter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/security/JwtUtil.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/service/PaymentService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/controller/ProductExcelController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ImportReport.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ProductUpdateEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/excel/ProductExcel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductExcelService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/CreateOrderRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/OrderCreatedResp.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/PaymentRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/PaymentSucceeded.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/UserDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/PaymentEventListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/BigDecimalPlainSerializer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/request/OrderCreateRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/request/OrderItemRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/event/PaymentSucceeded.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/model/OrderItem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/model/OrderItemStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/repository/OrderItemRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/HttpClientConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/RedisConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentRedirectController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/dto/PaymentFailed.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/dto/PaymentRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/dto/PaymentSucceeded.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/dto/UserDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentMethod.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentProcessor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentResult.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/payment/MomoPaymentProcessor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/payment/VnpayPaymentProcessor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/config/BigDecimalPlainSerializer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/config/KafkaConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/config/KafkaConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/outbox/OutboxRelay.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/outbox/OutboxRelay.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/repository/InventoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/repository/InventoryRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/OrderCreated.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/OrderCreated.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/ProductUpdateEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/dto/ProductUpdateEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/model/OutboxEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/model/OutboxEvent.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventoryListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventoryListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/InventoryServiceApplication/src/main/java/com/store/service/InventoryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/KafkaConsumerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/config/KafkaConsumerConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/ProductDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/java/com/store/service/NotificationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NotificationServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/NotificationServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/KafkaConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/config/KafkaConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/controller/OrderController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderCreated.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/event/OrderCreated.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/ProductDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/ReleaseStock.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/event/ReleaseStock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/StockRejected.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/event/StockRejected.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/StockReserved.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/event/StockReserved.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/model/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/model/Order.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderSagaListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/model/OrderStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/model/OrderStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/request/OrderRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/dto/request/OrderRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/OrderServiceApplication/src/main/java/com/store/service/OrderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/controller/ProductController.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/controller/ProductController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/KafkaConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/KafkaConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/SecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/OutboxEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/OutboxEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/Payment.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/Payment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/outbox/OutboxRelay.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/outbox/OutboxRelay.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/security/JwtAuthenticationFilter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/security/JwtUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/service/PaymentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ProductCreatedEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ProductCreatedEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ProductDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ProductUpdateEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/dto/ProductUpdateEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/excel/ProductExcel.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/excel/ProductExcel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/model/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/model/Product.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductExcelService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductExcelService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductStockSyncListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/java/com/store/service/ProductStockSyncListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ProductServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ProductServiceApplication/src/main/resources/application.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/OrderDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/ProductDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/UserDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/UserDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/OrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/OrderDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/PaymentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/PaymentRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/ProductDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/ProductDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/model/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/model/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/model/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/model/Product.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/request/OrderRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/request/OrderRequest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,10 +93,10 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Record" />
         <option value="Enum" />
         <option value="Interface" />
         <option value="Class" />
-        <option value="Record" />
       </list>
     </option>
   </component>
@@ -87,33 +117,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "jdk.selected.JAVA_MODULE": "17",
-    "last_opened_file_path": "D:/pjPersonal/Store-Microservice/PaymentServiceApplication/src/main/java/com/store",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
-    "spring.configuration.checksum": "7e8edfd08454b9e5adef1601dd294e7d",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;17&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/pjPersonal/Store-Microservice/PaymentServiceApplication/src/main/java/com/store&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
+    &quot;spring.configuration.checksum&quot;: &quot;3f10058f280b44852728750cebe0c826&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\pjPersonal\Store-Microservice\PaymentServiceApplication\src\main\java\com\store" />
@@ -122,9 +155,9 @@
       <recent name="D:\pjPersonal\Store-Microservice\InventoryServiceApplication\src\main\java\com\store\dto" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.store.config" />
       <recent name="com.store.dto" />
       <recent name="com.store.service" />
-      <recent name="com.store.config" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -200,12 +233,12 @@
     </configuration>
     <list>
       <item itemvalue="Spring Boot.ApiGatewayApplication" />
-      <item itemvalue="Spring Boot.ProductServiceApplication" />
-      <item itemvalue="Spring Boot.UserServiceApplication" />
       <item itemvalue="Spring Boot.PaymentServiceApplication" />
-      <item itemvalue="Spring Boot.InventoryServiceApplication" />
+      <item itemvalue="Spring Boot.UserServiceApplication" />
       <item itemvalue="Spring Boot.NotificationServiceApplication" />
       <item itemvalue="Spring Boot.OrderServiceApplication" />
+      <item itemvalue="Spring Boot.ProductServiceApplication" />
+      <item itemvalue="Spring Boot.InventoryServiceApplication" />
       <item itemvalue="Spring Boot.ConfigServiceApplication" />
       <item itemvalue="Spring Boot.EurekaServerApplication" />
     </list>
@@ -225,6 +258,8 @@
       <workItem from="1754960245234" duration="26278000" />
       <workItem from="1755047220133" duration="14061000" />
       <workItem from="1755479092257" duration="25061000" />
+      <workItem from="1755567340970" duration="26272000" />
+      <workItem from="1755738154435" duration="28151000" />
     </task>
     <servers />
   </component>
@@ -256,5 +291,15 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="org.springframework.web.client.HttpClientErrorException$NotFound" package="org.springframework.web.client" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

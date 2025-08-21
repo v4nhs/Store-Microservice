@@ -5,6 +5,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.*;
 
 public class ProductExcel {
@@ -33,7 +34,9 @@ public class ProductExcel {
                 Row row = sheet.createRow(r++);
                 row.createCell(0).setCellValue(nullSafe(d.id));
                 row.createCell(1).setCellValue(nullSafe(d.name));
-                if (d.price != null) row.createCell(2).setCellValue(d.price);
+                if (d.price != null) {
+                    row.createCell(2).setCellValue(String.valueOf(d.price));
+                }
                 row.createCell(3).setCellValue(d.quantity == null ? 0 : d.quantity);
             }
 
@@ -77,7 +80,7 @@ public class ProductExcel {
                 try {
                     String id = getString(row.getCell(0)).trim();
                     String name = getString(row.getCell(1)).trim();
-                    Double price = getDouble(row.getCell(2));
+                    BigDecimal price = BigDecimal.valueOf(getDouble(row.getCell(2)));
                     Integer quantity = getInt(row.getCell(3));
 
                     // dòng trống hoàn toàn -> bỏ qua
@@ -125,6 +128,6 @@ public class ProductExcel {
     }
 
     // ===== DTO phụ trợ (đồng bộ với ProductDTO) =====
-    public record RowData(String id, String name, Double price, Integer quantity) {}
+    public record RowData(String id, String name, BigDecimal price, Integer quantity) {}
     public record ParseResult(List<RowData> rows, List<String> errors) {}
 }
