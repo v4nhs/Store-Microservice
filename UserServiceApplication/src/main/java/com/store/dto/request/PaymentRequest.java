@@ -1,4 +1,4 @@
-package com.store.dto;
+package com.store.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.AllArgsConstructor;
@@ -19,4 +19,6 @@ public class PaymentRequest {
 
     @JsonAlias({"idemKey", "idem_key"})
     private String idempotencyKey;
+    @JsonAlias({"return_url"})
+    private String returnUrl;
 }

@@ -3,6 +3,8 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/ApiGatewayApplication/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ApiGatewayApplication/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ChatServiceApplication/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ChatServiceApplication/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ConfigServiceApplication/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ConfigServiceApplication/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/EurekaServerApplication/src/main/java" charset="UTF-8" />

@@ -10,9 +10,13 @@ import com.store.model.OutboxEvent;
 import com.store.model.Payment;
 import com.store.model.PaymentMethod;
 import com.store.model.PaymentStatus;
+import com.store.model.PaymentResult;
+import com.store.paypal.PayPalClient;
+import com.store.processor.PaymentProcessor;
 import com.store.repository.OutboxRepository;
 import com.store.repository.PaymentRepository;
 import io.micrometer.common.lang.Nullable;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,18 +32,35 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentService {
+
     private final PaymentRepository paymentRepo;
     private final OutboxRepository outboxRepo;
     private final StringRedisTemplate redis;
     private final RestTemplate restTemplate;
     private final ObjectMapper om;
+    private final PayPalClient payPalClient;
+
+    private final List<PaymentProcessor> processorBeans;
+    private final Map<PaymentMethod, PaymentProcessor> processors = new EnumMap<>(PaymentMethod.class);
+
+    @PostConstruct
+    void initProcessors() {
+        processors.clear();
+        for (PaymentProcessor p : processorBeans) {
+            try {
+                processors.put(p.method(), p);
+                log.info("[PROC] registered processor for method={}", p.method());
+            } catch (Exception ex) {
+                log.warn("[PROC] skip {} due to {}", p.getClass().getSimpleName(), ex.getMessage());
+            }
+        }
+    }
 
     @Value("${order.service.base-url}")
     private String orderBaseUrl;
@@ -52,7 +73,7 @@ public class PaymentService {
     private String userBaseUrl;
 
     private String userUrl(String userId) {
-        return userBaseUrl + "/api/users/" + userId; // chỉnh path nếu API bạn khác
+        return userBaseUrl + "/api/users/" + userId;
     }
 
     private static final String LUA_IDEM_SET_IF_ABSENT =
@@ -72,6 +93,16 @@ public class PaymentService {
         if (req.getMethod() == null) {
             req.setMethod(PaymentMethod.COD);
         }
+
+        // --- (1) Chuẩn hoá idempotencyKey theo method ---
+        String methodPart = req.getMethod() != null ? req.getMethod().name() : PaymentMethod.COD.name();
+        String normalizedIdem = req.getIdempotencyKey();
+        if (normalizedIdem == null || normalizedIdem.isBlank()) {
+            normalizedIdem = "auto-" + methodPart;
+        } else {
+            normalizedIdem = methodPart + ":" + normalizedIdem;
+        }
+        req.setIdempotencyKey(normalizedIdem);
 
         log.info("[PAY][IN ] orderId={} method={} idemKey={} provider={} amount={} returnUrl={}",
                 orderId, req.getMethod(), req.getIdempotencyKey(), req.getProvider(), req.getAmount(), req.getReturnUrl());
@@ -105,7 +136,7 @@ public class PaymentService {
             }
         }
 
-        // 2) Idempotency bằng Redis + Lua — theo cặp (orderId, idempotencyKey)
+        // 2) Idempotency bằng Redis + Lua — theo cặp (orderId, normalizedIdem)
         if (req.getIdempotencyKey() != null && !req.getIdempotencyKey().isBlank()) {
             String key = "idem:payment:" + orderId + ":" + req.getIdempotencyKey();
             log.info("[IDEMP] try SETNX key={} ttlSec={}", key, IDEM_TTL.toSeconds());
@@ -114,9 +145,9 @@ public class PaymentService {
             log.info("[IDEMP] result ok={} (1=new, 0=duplicate)", ok);
 
             if (ok == null || ok == 0L) {
-                // Duplicate trong TTL → lấy record cũ rồi hòa giải nếu còn PENDING
-                Payment dup = paymentRepo.findByOrderId(orderId)
-                        .orElseGet(() -> paymentRepo.findByIdempotencyKey(req.getIdempotencyKey())
+                // Duplicate trong TTL → ưu tiên lấy theo idempotencyKey, rồi mới fallback orderId
+                Payment dup = paymentRepo.findByIdempotencyKey(req.getIdempotencyKey())
+                        .orElseGet(() -> paymentRepo.findByOrderId(orderId)
                                 .orElseThrow(() -> new ResponseStatusException(
                                         HttpStatus.CONFLICT, "Duplicate payment request for orderId=" + orderId)));
 
@@ -124,6 +155,13 @@ public class PaymentService {
                         dup.getId(), dup.getStatus(), dup.getMethod(), dup.getProvider(), dup.getAmount(), dup.getIdempotencyKey());
 
                 if (dup.getStatus() == PaymentStatus.PENDING) {
+                    if (dup.getMethod() != req.getMethod()) {
+                        log.info("[IDEMP] method differs ({} vs {}), return existing without reconcile", dup.getMethod(), req.getMethod());
+                        log.info("[RETURN] id={} orderId={} status={} method={} provider={} amount={} idemKey={}",
+                                dup.getId(), dup.getOrderId(), dup.getStatus(), dup.getMethod(), dup.getProvider(), dup.getAmount(), dup.getIdempotencyKey());
+                        return dup;
+                    }
+
                     PaymentMethod pm0 = dup.getMethod();
                     String pv0 = dup.getProvider();
                     BigDecimal am0 = dup.getAmount();
@@ -186,60 +224,85 @@ public class PaymentService {
                     p.getId(), p.getStatus(), p.getMethod(), p.getProvider(), p.getAmount(), p.getIdempotencyKey());
         }
 
-        // 4) Cùng order nhưng đổi idempotencyKey / method / provider / amount → hòa giải khi còn PENDING
+        // 4) Reconcile khi còn PENDING (giữ an toàn: không đổi method nếu khác)
         if (p.getStatus() == PaymentStatus.PENDING) {
-            PaymentMethod pm0 = p.getMethod();
-            String pv0 = p.getProvider();
-            BigDecimal am0 = p.getAmount();
-            String ik0 = p.getIdempotencyKey();
-
-            boolean changed = false;
-            if (req.getIdempotencyKey() != null && (p.getIdempotencyKey() == null || !p.getIdempotencyKey().equals(req.getIdempotencyKey()))) {
-                p.setIdempotencyKey(req.getIdempotencyKey()); changed = true;
-            }
-            if (req.getMethod() != null && p.getMethod() != req.getMethod()) {
-                p.setMethod(req.getMethod()); changed = true;
-            }
-            if (req.getProvider() != null && (p.getProvider() == null || !p.getProvider().equals(req.getProvider()))) {
-                p.setProvider(req.getProvider()); changed = true;
-            }
-            if (req.getAmount() != null && req.getAmount().compareTo(BigDecimal.ZERO) > 0
-                    && p.getAmount().compareTo(req.getAmount()) != 0) {
-                p.setAmount(req.getAmount()); changed = true;
-            }
-
-            if (changed) {
-                p = paymentRepo.save(p);
-                log.info("[RECON] normal reconciled id={} method {}->{} | provider {}->{} | amount {}->{} | idemKey {}->{}",
-                        p.getId(), pm0, p.getMethod(), pv0, p.getProvider(), am0, p.getAmount(), ik0, p.getIdempotencyKey());
+            if (p.getMethod() != null && req.getMethod() != null && p.getMethod() != req.getMethod()) {
+                log.info("[RECON] skip reconcile due to method change {} -> {}", p.getMethod(), req.getMethod());
             } else {
-                log.info("[RECON] normal no-change id={}", p.getId());
+                PaymentMethod pm0 = p.getMethod();
+                String pv0 = p.getProvider();
+                BigDecimal am0 = p.getAmount();
+                String ik0 = p.getIdempotencyKey();
+
+                boolean changed = false;
+                if (req.getIdempotencyKey() != null && (p.getIdempotencyKey() == null || !p.getIdempotencyKey().equals(req.getIdempotencyKey()))) {
+                    p.setIdempotencyKey(req.getIdempotencyKey()); changed = true;
+                }
+                if (req.getMethod() != null && p.getMethod() != req.getMethod()) {
+                    p.setMethod(req.getMethod()); changed = true;
+                }
+                if (req.getProvider() != null && (p.getProvider() == null || !p.getProvider().equals(req.getProvider()))) {
+                    p.setProvider(req.getProvider()); changed = true;
+                }
+                if (req.getAmount() != null && req.getAmount().compareTo(BigDecimal.ZERO) > 0
+                        && p.getAmount().compareTo(req.getAmount()) != 0) {
+                    p.setAmount(req.getAmount()); changed = true;
+                }
+
+                if (changed) {
+                    p = paymentRepo.save(p);
+                    log.info("[RECON] normal reconciled id={} method {}->{} | provider {}->{} | amount {}->{} | idemKey {}->{}",
+                            p.getId(), pm0, p.getMethod(), pv0, p.getProvider(), am0, p.getAmount(), ik0, p.getIdempotencyKey());
+                } else {
+                    log.info("[RECON] normal no-change id={}", p.getId());
+                }
             }
         }
 
         // Nếu đã xử lý rồi → trả luôn
-        if (p.getStatus() != PaymentStatus.PENDING) {
+        if (p.getStatus() != PaymentStatus.PENDING && p.getMethod() != PaymentMethod.PAYPAL) {
             log.info("[RETURN] id={} orderId={} status={} method={} provider={} amount={} idemKey={}",
                     p.getId(), p.getOrderId(), p.getStatus(), p.getMethod(), p.getProvider(), p.getAmount(), p.getIdempotencyKey());
             return p;
         }
 
-        // 5) Xử lý thanh toán (demo)
+        // 5) Xử lý thanh toán
         if (req.getMethod() == PaymentMethod.COD) {
             log.info("[RETURN] PENDING(COD) id={} orderId={} status={} method={} amount={} idemKey={}",
                     p.getId(), p.getOrderId(), p.getStatus(), p.getMethod(), p.getAmount(), p.getIdempotencyKey());
-            return p; // COD: giữ PENDING
+            return p;
+        }
+        Map<String, String> params = new HashMap<>();
+        if (req.getReturnUrl() != null) params.put("returnUrl", req.getReturnUrl());
+
+        PaymentProcessor processor = processors.get(p.getMethod());
+        PaymentResult result = (processor != null)
+                ? processor.charge(p, params)
+                : PaymentResult.builder().success(true).transactionRef(null).build();
+
+        // PAYPAL: create order -> giữ PENDING, lưu paypalOrderId + log approvalUrl
+        if (p.getMethod() == PaymentMethod.PAYPAL) {
+            p.setAmount(amount);
+            p.setTransactionRef(result.getTransactionRef());
+            paymentRepo.save(p);
+
+            log.info("[PAYPAL] created order={} approvalUrl={}", result.getTransactionRef(), result.getApprovalUrl());
+            log.info("[RETURN] id={} orderId={} status={} method={} provider={} amount={} idemKey={}",
+                    p.getId(), p.getOrderId(), p.getStatus(), p.getMethod(), p.getProvider(), p.getAmount(), p.getIdempotencyKey());
+            return p;
         }
 
-        boolean success = true; // demo online OK
         p.setAmount(amount);
-        p.setStatus(success ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
+        p.setTransactionRef(result.getTransactionRef());
+        p.setStatus(result.isSuccess() ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         paymentRepo.save(p);
-        log.info("[PROC ] online processed id={} status={} method={} amount={}", p.getId(), p.getStatus(), p.getMethod(), p.getAmount());
+        log.info("[PROC ] online processed id={} status={} method={} amount={} txRef={}",
+                p.getId(), p.getStatus(), p.getMethod(), p.getAmount(), p.getTransactionRef());
 
         // 6) Outbox
         try {
-            if (success) {
+            boolean successFlag = (p.getStatus() == PaymentStatus.SUCCESS);
+            if (successFlag) {
                 var evt = PaymentSucceeded.builder()
                         .orderId(orderId)
                         .paymentId(p.getId())
@@ -248,6 +311,7 @@ public class PaymentService {
                         .email(email)
                         .method(p.getMethod().name())
                         .provider(p.getProvider())
+                        // .transactionRef(p.getTransactionRef()) // bật nếu DTO có field này
                         .build();
                 outboxRepo.save(OutboxEvent.builder()
                         .aggregateId(p.getId())
@@ -284,13 +348,100 @@ public class PaymentService {
                 p.getId(), p.getOrderId(), p.getStatus(), p.getMethod(), p.getProvider(), p.getAmount(), p.getIdempotencyKey());
         return p;
     }
+    @Transactional
+    public Payment capturePaypal(String paypalOrderId) {
+        if (paypalOrderId == null || paypalOrderId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "paypalOrderId is required");
+        }
 
+        Payment p = paymentRepo.findByTransactionRef(paypalOrderId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Payment with transactionRef=" + paypalOrderId + " not found"));
 
+        Map<?, ?> body = payPalClient.capture(paypalOrderId);
 
-    /**
-     * ⚠️ KHÔNG set cứng COD ở overload này nữa.
-     * Tốt nhất: xoá hẳn overload để không ai gọi nhầm.
-     */
+        // PayPal trả status ở cấp order hoặc trong captures[]
+        boolean completed = false;
+        Object st = body.get("status");
+        if (st instanceof String s && "COMPLETED".equalsIgnoreCase(s)) {
+            completed = true;
+        } else {
+            Object pus = body.get("purchase_units");
+            if (pus instanceof List<?> list && !list.isEmpty()) {
+                Object pu0 = list.get(0);
+                if (pu0 instanceof Map<?, ?> puMap) {
+                    Object payments = puMap.get("payments");
+                    if (payments instanceof Map<?, ?> payMap) {
+                        Object captures = payMap.get("captures");
+                        if (captures instanceof List<?> caps && !caps.isEmpty()) {
+                            Object c0 = caps.get(0);
+                            if (c0 instanceof Map<?, ?> cMap) {
+                                Object cs = cMap.get("status");
+                                if (cs instanceof String csStr && "COMPLETED".equalsIgnoreCase(csStr)) {
+                                    completed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        p.setStatus(completed ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
+        paymentRepo.save(p);
+
+        log.info("[PAYPAL][CAP] order={} result={} paymentId={} status={}",
+                paypalOrderId, completed ? "COMPLETED" : "FAILED", p.getId(), p.getStatus());
+
+        try {
+            boolean successFlag = (p.getStatus() == PaymentStatus.SUCCESS);
+            if (successFlag) {
+                var evt = PaymentSucceeded.builder()
+                        .orderId(p.getOrderId())
+                        .paymentId(p.getId())
+                        .amount(p.getAmount())
+                        .status(p.getStatus().name())
+                        .email(null)
+                        .method(p.getMethod().name())
+                        .provider(p.getProvider())
+                        // .transactionRef(p.getTransactionRef()) // bật nếu DTO có field này
+                        .build();
+
+                outboxRepo.save(OutboxEvent.builder()
+                        .aggregateId(p.getId())
+                        .aggregateType("PAYMENT")
+                        .eventType("PAYMENT_SUCCESS")
+                        .payload(om.writeValueAsString(evt))
+                        .status("NEW")
+                        .build());
+                log.info("[OUTBX] queued PAYMENT_SUCCESS for id={}", p.getId());
+            } else {
+                var evt = PaymentFailed.builder()
+                        .orderId(p.getOrderId())
+                        .paymentId(p.getId())
+                        .reason("PAYPAL_CAPTURE_FAILED")
+                        .build();
+
+                outboxRepo.save(OutboxEvent.builder()
+                        .aggregateId(p.getId())
+                        .aggregateType("PAYMENT")
+                        .eventType("PAYMENT_FAILED")
+                        .payload(om.writeValueAsString(evt))
+                        .status("NEW")
+                        .build());
+                log.info("[OUTBX] queued PAYMENT_FAILED for id={}", p.getId());
+            }
+        } catch (JsonProcessingException e) {
+            log.error("[OUTBX][ERR] Serialize outbox payload failed: {}", e.getOriginalMessage());
+            // tuỳ chọn: đổi status sang FAILED nếu serialize lỗi
+            p.setStatus(PaymentStatus.FAILED);
+            paymentRepo.save(p);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Cannot serialize outbox event", e);
+        }
+
+        return p;
+    }
     @Deprecated
     @Transactional
     public Payment pay(String orderId,
@@ -301,7 +452,7 @@ public class PaymentService {
                 .orderId(orderId)
                 .amount(amount)
                 .idempotencyKey(idempotencyKey)
-                // .method(PaymentMethod.COD) // bỏ set cứng
+                //.method(PaymentMethod.COD) // có thể bỏ set cứng nếu muốn nhận method từ client
                 .build();
         return pay(req, authorizationHeader);
     }

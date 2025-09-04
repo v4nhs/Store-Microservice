@@ -21,6 +21,7 @@
         <module>InventoryServiceApplication</module>
         <module>NotificationServiceApplication</module>
         <module>PaymentServiceApplication</module>
+        <module>ChatServiceApplication</module>
     </modules>
 
     <properties>

@@ -12,4 +12,5 @@ public class PaymentResult {
     private boolean success;
     private String transactionRef;
     private String failureReason;
+    private String approvalUrl;
 }

@@ -15,6 +15,12 @@ spring:
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/products/**
+        - id: chat-service
+          uri: lb://chat-service
+          predicates:
+            - Path=/api/chat/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       discovery:
         locator:
           enabled: true

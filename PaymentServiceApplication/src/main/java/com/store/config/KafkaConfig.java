@@ -13,8 +13,9 @@ import java.util.Map;
 public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrap;
+
     @Bean
-    public ProducerFactory<String, Object> producerFactory() {
+    public ProducerFactory<Object, Object> producerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -24,6 +25,9 @@ public class KafkaConfig {
         props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 120_000);
         return new DefaultKafkaProducerFactory<>(props);
     }
+
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate() { return new KafkaTemplate<>(producerFactory()); }
+    public KafkaTemplate<Object, Object> kafkaTemplate(ProducerFactory<Object, Object> pf) {
+        return new KafkaTemplate<>(pf);
+    }
 }

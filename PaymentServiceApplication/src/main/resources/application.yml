@@ -22,7 +22,7 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
       properties:
         spring.json.add.type.headers: false
         spring.json.trusted.packages: "com.store.dto.*"
@@ -43,3 +43,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+paypal:
+  base-url: https://api-m.sandbox.paypal.com
+  client-id: AQEyZlrsnBTPjoncAA81bI0hACMc4TJiw80mJPQzpqEzwa78i6LDqoqj9rAdJSCWRZVS2XjSIYQYSI-W
+  client-secret: EICy2Tnhfc7at9Tvz3BS5RMSo4Y1owC0B32ekwYvT7ecCr8zg1w8-phRZrhjf27d_sJIhp6AgW5zbh1D
+  return-url: http://localhost:8086/paypal/return
+  cancel-url:  http://localhost:8086/paypal/cancel

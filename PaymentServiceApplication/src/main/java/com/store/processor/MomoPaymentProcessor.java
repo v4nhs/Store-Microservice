@@ -1,8 +1,7 @@
-package com.store.payment;
+package com.store.processor;
 
 import com.store.model.Payment;
 import com.store.model.PaymentMethod;
-import com.store.model.PaymentProcessor;
 import com.store.model.PaymentResult;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +14,6 @@ public class MomoPaymentProcessor implements PaymentProcessor {
 
     @Override
     public PaymentResult charge(Payment payment, Map<String, String> params) {
-        // TODO: Gọi MoMo real API
         return PaymentResult.builder()
                 .success(true)
                 .transactionRef("MOMO-" + UUID.randomUUID())

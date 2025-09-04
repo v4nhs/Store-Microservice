@@ -250,26 +250,35 @@ public class UserService {
         return restTemplate.getForObject("http://order-service/api/orders/" + id, OrderDTO.class);
     }
 
-    public String payOrder(String orderId, String idempotencyKey, HttpServletRequest request) {
+    public String payOrderWithMethod(String orderId,
+                                     String idempotencyKey,
+                                     String method,
+                                     String provider,
+                                     HttpServletRequest request) {
         try {
             String token = request.getHeader("Authorization");
-            if (token != null && token.startsWith("Bearer ")) token = token.substring(7);
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
 
             HttpHeaders headers = new HttpHeaders();
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             headers.setContentType(MediaType.APPLICATION_JSON);
             if (token != null && !token.isBlank()) headers.setBearerAuth(token);
-            if (idempotencyKey != null && !idempotencyKey.isBlank()) headers.set("Idempotency-Key", idempotencyKey);
+            if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+                headers.set("Idempotency-Key", idempotencyKey);
+            }
 
             Map<String, Object> body = new HashMap<>();
             body.put("orderId", orderId);
-            body.put("amount", null);                      // để payment-service tự lấy từ order-service
+            body.put("amount", null);
             body.put("idempotencyKey", idempotencyKey);
-            body.put("method", "MOMO");                    // 👈 THÊM
-            body.put("provider", "MOMO");                  // 👈 tuỳ chọn
-            body.put("returnUrl", "http://localhost:8086/pay/redirect"); // 👈 tuỳ chọn
+            body.put("method", method);
+            if ("PAYPAL".equalsIgnoreCase(method)) {
+                body.put("provider", "PAYPAL");
+                body.put("returnUrl", "http://localhost:8086/pay/redirect");
+            }
 
-            // log để soi payload gửi đi
             log.info("[USER→PAY] {}", new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
@@ -284,6 +293,8 @@ public class UserService {
             return "Payment failed due to error";
         }
     }
+
+
     public byte[] exportProductsExcelBytes(HttpServletRequest request) {
         HttpHeaders headers = createAuthHeaders(request);
         HttpEntity<Void> entity = new HttpEntity<>(headers);

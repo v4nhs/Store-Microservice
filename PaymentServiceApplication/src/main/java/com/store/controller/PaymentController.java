@@ -2,6 +2,7 @@ package com.store.controller;
 
 import com.store.dto.PaymentRequest;
 import com.store.model.Payment;
+import com.store.paypal.PayPalClient;
 import com.store.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -17,11 +19,8 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final PayPalClient payPalClient;
 
-    /**
-     * Thanh toán: nhận JSON, chuyển thẳng PaymentRequest vào service.
-     * Không còn gọi overload pay(String, BigDecimal, String, ...) để tránh bị set cứng COD.
-     */
     @PostMapping("/pay")
     public ResponseEntity<Payment> pay(@RequestBody @Valid PaymentRequest req,
                                        @RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -30,6 +29,12 @@ public class PaymentController {
 
         Payment payment = paymentService.pay(req, authHeader);
         return ResponseEntity.ok(payment);
+    }
+
+    @PostMapping("/paypal/capture")
+    public ResponseEntity<Payment> capture(@RequestParam("paypalOrderId") String paypalOrderId) {
+        Payment p = paymentService.capturePaypal(paypalOrderId);
+        return ResponseEntity.ok(p);
     }
 
     @GetMapping(value = "/by-order/{orderId}", produces = MediaType.APPLICATION_JSON_VALUE)

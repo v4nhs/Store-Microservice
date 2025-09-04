@@ -1,7 +1,7 @@
 package com.store.controller;
 
 import com.store.dto.OrderDTO;
-import com.store.dto.PaymentRequest;
+import com.store.dto.request.PaymentRequest;
 import com.store.dto.ProductDTO;
 import com.store.model.User;
 import com.store.dto.request.OrderRequest;
@@ -14,8 +14,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.net.URI;
+import java.util.Map;
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/user")
@@ -79,16 +83,76 @@ public class UserController {
         return userService.getOrderById(id);
     }
 
-    @PostMapping("/orders/pay")
-    public ResponseEntity<String> payOrder(@RequestBody PaymentRequest requestBody,
-                                           HttpServletRequest httpRequest) {
-
-        String orderId = requestBody.getOrderId();
-        String idempotencyKey = requestBody.getIdempotencyKey();
-
+    // COD
+    @PostMapping("/orders/pay/cod")
+    public ResponseEntity<String> payOrderCod(@RequestBody PaymentRequest requestBody,
+                                              HttpServletRequest httpRequest) {
         return ResponseEntity.ok(
-                userService.payOrder(orderId, idempotencyKey, httpRequest)
+                userService.payOrderWithMethod(
+                        requestBody.getOrderId(),
+                        requestBody.getIdempotencyKey(),
+                        "COD",
+                        null,
+                        httpRequest
+                )
         );
+    }
+
+    // PAYPAL
+    @PostMapping("/orders/pay/paypal")
+    public ResponseEntity<?> payOrderPaypal(@RequestBody PaymentRequest requestBody,
+                                            HttpServletRequest httpRequest) {
+        // Gọi xuống payment-service như cũ
+        String result = userService.payOrderWithMethod(
+                requestBody.getOrderId(),
+                requestBody.getIdempotencyKey(),
+                "PAYPAL",
+                "PAYPAL",
+                httpRequest
+        );
+
+        // 1) Nếu service đã trả URL thuần -> redirect luôn
+        if (result != null) {
+            String trimmed = result.trim();
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                return ResponseEntity.status(302).location(URI.create(trimmed)).build();
+            }
+        }
+        try {
+            ObjectMapper om = new ObjectMapper();
+            Map<String, Object> map = om.readValue(result, new TypeReference<Map<String, Object>>() {});
+            Object direct = map.get("approvalUrl");
+            if (direct instanceof String s && (s.startsWith("http://") || s.startsWith("https://"))) {
+                return ResponseEntity.status(302).location(URI.create(s)).build();
+            }
+            // Trường hợp trả kiểu PayPal body có links[]
+            Object linksObj = map.get("links");
+            if (linksObj instanceof List<?> links) {
+                for (Object o : links) {
+                    if (o instanceof Map<?, ?> lnk) {
+                        Object rel = lnk.get("rel");
+                        Object href = lnk.get("href");
+                        if (href instanceof String h && (h.startsWith("http://") || h.startsWith("https://"))) {
+                            if (rel == null) {
+                                return ResponseEntity.status(302).location(URI.create(h)).build();
+                            }
+                            String r = String.valueOf(rel);
+                            if ("approve".equalsIgnoreCase(r) || "payer-action".equalsIgnoreCase(r)) {
+                                return ResponseEntity.status(302).location(URI.create(h)).build();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignore) {
+            // Không phải JSON hoặc không parse được -> rơi xuống nhánh trả body để debug
+        }
+
+        // 3) Không tìm thấy URL -> trả body để kiểm tra
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(result);
     }
 
     @GetMapping("/products/excel/export")

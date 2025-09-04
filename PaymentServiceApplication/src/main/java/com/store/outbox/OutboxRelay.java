@@ -1,8 +1,5 @@
 package com.store.outbox;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.store.dto.PaymentFailed;
-import com.store.dto.PaymentSucceeded;
 import com.store.model.OutboxEvent;
 import com.store.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -24,8 +20,13 @@ import java.util.List;
 public class OutboxRelay {
 
     private final OutboxRepository repo;
-    private final KafkaTemplate<String, Object> kafka;
-    private final ObjectMapper om = new ObjectMapper();
+    private final KafkaTemplate<Object, Object> kafka;
+
+    @Value("${app.topics.paymentSucceeded}")
+    private String topicPaymentSucceeded;
+
+    @Value("${app.topics.paymentFailed}")
+    private String topicPaymentFailed;
 
     @Scheduled(fixedDelay = 500)
     @Transactional
@@ -37,13 +38,10 @@ public class OutboxRelay {
             try {
                 switch (e.getEventType()) {
                     case "PAYMENT_SUCCESS" -> {
-                        PaymentSucceeded evt = om.readValue(e.getPayload(), PaymentSucceeded.class);
-                        kafka.send("payment-success", evt);
-                        kafka.send("payment-succeeded", evt);
+                        kafka.send(topicPaymentSucceeded, e.getAggregateId().toString(), e.getPayload());
                     }
                     case "PAYMENT_FAILED" -> {
-                        PaymentFailed evt = om.readValue(e.getPayload(), PaymentFailed.class);
-                        kafka.send("payment-failed", evt);
+                        kafka.send(topicPaymentFailed, e.getAggregateId().toString(), e.getPayload());
                     }
                     default -> log.warn("Unknown eventType: {}", e.getEventType());
                 }
@@ -52,7 +50,7 @@ public class OutboxRelay {
             } catch (Exception ex) {
                 e.setStatus("FAILED");
                 e.setLastError(ex.getMessage());
-                log.error("Publish outbox id={} failed: {}", e.getId(), ex.getMessage());
+                log.error("Publish outbox id={} failed: {}", e.getId(), ex.getMessage(), ex);
             }
         }
         repo.saveAll(batch);

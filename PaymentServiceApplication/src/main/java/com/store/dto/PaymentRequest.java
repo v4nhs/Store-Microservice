@@ -23,7 +23,7 @@ public class PaymentRequest {
     @NotNull
     @JsonProperty("method")
     @JsonAlias({"paymentMethod", "payment_method"})
-    private PaymentMethod method;// COD/MOMO/VNPAY/...
+    private PaymentMethod method;
     @NotBlank
     @JsonAlias({"idemKey", "idempotency_key"})
     private String idempotencyKey;
