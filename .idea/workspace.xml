@@ -5,39 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd7e30ae-3d9e-4eac-8ca2-df2c97d27524" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/java/com/store/ChatServiceApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/java/com/store/config/CorsGlobalConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/java/com/store/config/SecurityConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/java/com/store/config/WebClientConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/java/com/store/controller/ChatController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/java/com/store/dto/request/ChatRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/java/com/store/service/ToolGateway.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/paypal/PayPalClient.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/processor/PaypalPaymentProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ApiGatewayApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ApiGatewayApplication/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/HttpClientConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/HttpClientConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/KafkaConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/config/KafkaConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentRedirectController.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/controller/PaymentRedirectController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/dto/PaymentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/dto/PaymentRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentMethod.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentMethod.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/processor/PaymentProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/model/PaymentResult.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/outbox/OutboxRelay.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/outbox/OutboxRelay.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/payment/MomoPaymentProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/processor/MomoPaymentProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/payment/VnpayPaymentProcessor.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/repository/PaymentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/repository/PaymentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/java/com/store/service/PaymentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PaymentServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/PaymentServiceApplication/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/PaymentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/dto/request/PaymentRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/UserServiceApplication/src/main/java/com/store/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ChatServiceApplication/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ChatServiceApplication/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

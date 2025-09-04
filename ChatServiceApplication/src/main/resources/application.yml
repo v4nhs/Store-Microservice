@@ -9,7 +9,7 @@ spring:
     model:
       chat: openai
     openai:
-      api-key: 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
+      api-key: ${OPENAI_API_KEY}
       chat:
         options:
           model: gpt-4o-mini
