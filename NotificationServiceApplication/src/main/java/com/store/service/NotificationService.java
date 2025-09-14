@@ -127,13 +127,12 @@ public class NotificationService {
 
     /** XÁC NHẬN ĐƠN HÀNG (từ topic order-confirmed) */
     public void sendOrderConfirmedEmail(OrderDTO event) {
-        // Ưu tiên lấy chi tiết đơn để render multi-items
+        // Ưu tiên lấy chi tiết đơn để render multi-items + size
         OrderDetail od = getOrderDetail(event.getOrderId());
         String to = resolveTo(event);
         String subject = "Đơn hàng #" + event.getOrderId() + " đã xác nhận";
 
         if (od != null && od.getItems() != null && !od.getItems().isEmpty()) {
-            // Email dạng multi-items
             StringBuilder rows = new StringBuilder();
             for (OrderDetail.Item it : od.getItems()) {
                 String name = safeProductName(it.getProductId());
@@ -143,13 +142,19 @@ public class NotificationService {
                     <tr>
                       <td>%s</td>
                       <td>%s</td>
+                      <td style="text-align:center">%s</td>
                       <td style="text-align:right">%d</td>
                       <td style="text-align:right">%s</td>
                       <td style="text-align:right">%s</td>
                     </tr>
-                    """.formatted(it.getProductId(), name,
+                    """.formatted(
+                        it.getProductId(),
+                        name,
+                        (it.getSize() == null ? "-" : it.getSize()),
                         Objects.requireNonNullElse(it.getQuantity(), 0),
-                        unit, line));
+                        unit,
+                        line
+                ));
             }
 
             BigDecimal displayTotal = sumLineAmounts(od.getItems());
@@ -162,6 +167,7 @@ public class NotificationService {
                     <tr>
                       <th>Product ID</th>
                       <th>Tên sản phẩm</th>
+                      <th>Size</th>
                       <th style="text-align:right">SL</th>
                       <th style="text-align:right">Đơn giá</th>
                       <th style="text-align:right">Thành tiền</th>
@@ -172,7 +178,7 @@ public class NotificationService {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="4" style="text-align:right"><b>Tổng tiền</b></td>
+                      <td colspan="5" style="text-align:right"><b>Tổng tiền</b></td>
                       <td style="text-align:right"><b>%s</b></td>
                     </tr>
                   </tfoot>
@@ -190,6 +196,7 @@ public class NotificationService {
             return;
         }
 
+        // Trường hợp fallback single-item (event chưa đủ thông tin)
         String name = event.getProductName();
         BigDecimal price = event.getPrice();
         if ((name == null || name.isBlank()) || price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
@@ -201,7 +208,7 @@ public class NotificationService {
         }
         if (price == null) price = BigDecimal.ZERO;
         String safeName = (name == null || name.isBlank()) ? "(unknown)" : name;
-        BigDecimal total = price.multiply(BigDecimal.valueOf(event.getQuantity())); // không ép scale
+        BigDecimal total = price.multiply(BigDecimal.valueOf(event.getQuantity()));
 
         String body = """
             <p>Xin chào <b>%s</b>,</p>
@@ -239,13 +246,19 @@ public class NotificationService {
                     <tr>
                       <td>%s</td>
                       <td>%s</td>
+                      <td style="text-align:center">%s</td>
                       <td style="text-align:right">%d</td>
                       <td style="text-align:right">%s</td>
                       <td style="text-align:right">%s</td>
                     </tr>
-                    """.formatted(it.getProductId(), name,
+                    """.formatted(
+                        it.getProductId(),
+                        name,
+                        (it.getSize() == null ? "-" : it.getSize()),
                         Objects.requireNonNullElse(it.getQuantity(), 0),
-                        unit, line));
+                        unit,
+                        line
+                ));
             }
 
             BigDecimal displayTotal = sumLineAmounts(od.getItems());
@@ -258,6 +271,7 @@ public class NotificationService {
                     <tr>
                       <th>Product ID</th>
                       <th>Tên sản phẩm</th>
+                      <th>Size</th>
                       <th style="text-align:right">SL</th>
                       <th style="text-align:right">Đơn giá</th>
                       <th style="text-align:right">Thành tiền</th>
@@ -268,7 +282,7 @@ public class NotificationService {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="4" style="text-align:right"><b>Tổng tiền</b></td>
+                      <td colspan="5" style="text-align:right"><b>Tổng tiền</b></td>
                       <td style="text-align:right"><b>%s</b></td>
                     </tr>
                   </tfoot>
@@ -358,6 +372,7 @@ public class NotificationService {
         public static class Item {
             private String id;
             private String productId;
+            private String size;
             private Integer quantity;
             private BigDecimal unitPrice;
             private BigDecimal lineAmount;

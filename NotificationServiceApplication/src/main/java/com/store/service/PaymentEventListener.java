@@ -24,11 +24,11 @@ public class PaymentEventListener {
             containerFactory = "paymentSucceededListenerFactory"
     )
     public void onPaymentSucceeded(PaymentSucceeded evt) {
-        String key = "mail:sent:payment:" + evt.getOrderId();
-        if (Boolean.FALSE.equals(redis.opsForValue().setIfAbsent(key, "1", Duration.ofHours(24)))) return;
+        String key = KEY_PAID_PREFIX + evt.getOrderId(); // ✅ dùng hằng thống nhất
+        if (Boolean.FALSE.equals(redis.opsForValue().setIfAbsent(key, "1", IDEMPOTENT_TTL))) return;
 
         try {
-            emailService.sendPaymentSucceededEmail(evt); // có evt.getMethod(), getStatus(), getEmail()...
+            emailService.sendPaymentSucceededEmail(evt);
         } catch (Exception ex) {
             redis.delete(key);
             throw ex;

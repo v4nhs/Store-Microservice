@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 public class CreateOrderRequest {
     private String userId;
     private String productId;
+    private String size;
     private Integer quantity;
 }

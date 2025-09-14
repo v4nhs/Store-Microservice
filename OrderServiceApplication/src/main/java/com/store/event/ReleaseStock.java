@@ -8,6 +8,7 @@ import lombok.*;
 public class ReleaseStock {
     private String orderId;
     private String productId;
+    private String size;
     private int quantity;
     private String reason;
 }

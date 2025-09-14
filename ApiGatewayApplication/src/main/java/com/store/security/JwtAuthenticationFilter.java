@@ -15,7 +15,7 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String SECRET_KEY = "your-secret-key"; // TODO: Replace with secure key and move to config
+    private static final String SECRET_KEY = "your-secret-key";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

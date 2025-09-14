@@ -23,6 +23,22 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    volumes:
+      - qdrant_storage:/qdrant/storage
+  chat-service:
+    environment:
+      - GOOGLE_GENAI_API_KEY=AIzaSyAn3mo1ndy-Wfnexvm_1lFkYlNPca9iVxU
+      - GOOGLE_API_KEY=AIzaSyAn3mo1ndy-Wfnexvm_1lFkYlNPca9iVxU
+volumes:
+  qdrant_storage: {}
   # eureka-server:
   #   build: ./EurekaServerApplication
   #   ports:

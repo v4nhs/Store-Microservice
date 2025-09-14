@@ -11,6 +11,8 @@ public class OrderRequest {
     private String userId;
     @NotBlank(message = "productId không được trống")
     private String productId;
+    @NotBlank
+    private String size;
     @NotNull(message = "quantity là bắt buộc")
     @Min(value = 1, message = "quantity phải >= 1")
     private Integer quantity;

@@ -8,8 +8,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
-    @Query("select i from OrderItem i where i.order.id = :orderId and i.productId = :productId")
-    Optional<OrderItem> findByOrderIdAndProductId(@Param("orderId") String orderId,
-                                                  @Param("productId") String productId);
+    @Query("select i from OrderItem i where i.order.id = :orderId and i.productId = :productId and i.size = :size")
+    Optional<OrderItem> findByOrderIdAndProductIdAndSize(@Param("orderId") String orderId,
+                                                         @Param("productId") String productId,
+                                                         @Param("size") String size);
 }
 

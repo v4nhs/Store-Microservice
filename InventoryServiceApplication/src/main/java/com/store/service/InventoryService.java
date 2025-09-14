@@ -23,19 +23,22 @@ public class InventoryService {
 
     private String stockKey(String productId) { return "stock:" + productId; }
 
+    // ========= product-created => tạo/khởi tạo tồn kho tuyệt đối =========
     @KafkaListener(
             topics = "product-created-topic",
             groupId = "inventory-init-group",
-            containerFactory = "productCreatedStringFactory"
+            containerFactory = "productCreatedStringFactory" // giữ nguyên nếu bạn đã cấu hình
     )
     @Transactional
     public void onProductCreated(String payload) {
         try {
+            // payload đôi khi bị wrap thành chuỗi JSON
             String json = (payload != null && !payload.isEmpty() && payload.charAt(0) == '"')
                     ? om.readValue(payload, String.class)
                     : payload;
 
             ProductCreatedEvent evt = om.readValue(json, ProductCreatedEvent.class);
+
             String productId = evt.getProductId();
             if (productId == null || productId.isBlank()) {
                 log.warn("[INV-INIT] productId rỗng trong payload: {}", payload);
@@ -58,6 +61,7 @@ public class InventoryService {
         }
     }
 
+    // ========= product-updated => đồng bộ tuyệt đối quantity =========
     @KafkaListener(
             topics = "product-updated-topic",
             groupId = "inventory-sync-group",
@@ -71,6 +75,7 @@ public class InventoryService {
                     : payload;
 
             ProductUpdateEvent evt = om.readValue(json, ProductUpdateEvent.class);
+
             String productId = evt.getProductId();
             if (productId == null || productId.isBlank()) {
                 log.warn("[INV-UPDATE] productId rỗng trong payload: {}", payload);
@@ -93,6 +98,7 @@ public class InventoryService {
         }
     }
 
+    // ========= product-deleted => xóa inventory + key Redis =========
     @KafkaListener(
             topics = "product-deleted-topic",
             groupId = "inventory-sync-group",
@@ -105,7 +111,9 @@ public class InventoryService {
                     ? om.readValue(payload, String.class)
                     : payload;
 
+            // Payload xóa hiện đang tái dụng ProductCreatedEvent (chỉ cần id)
             ProductCreatedEvent evt = om.readValue(json, ProductCreatedEvent.class);
+
             String productId = evt.getProductId();
             if (productId == null || productId.isBlank()) {
                 log.warn("[INV-DELETE] productId rỗng trong payload: {}", payload);
@@ -113,7 +121,6 @@ public class InventoryService {
             }
 
             inventoryRepository.findByProductId(productId).ifPresent(inventoryRepository::delete);
-
             redis.delete(stockKey(productId));
 
             log.info("[INV-DELETE] Deleted inventory & Redis for productId={}", productId);

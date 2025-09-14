@@ -20,6 +20,8 @@ public class OrderItem {
     private String id;
 
     private String productId;
+    @Column(name = "size", nullable = false, length = 20)
+    private String size;
     @NotNull(message = "Quantity không được null")
     @Min(value = 1, message = "Quantity phải >= 1")
     private Integer quantity;

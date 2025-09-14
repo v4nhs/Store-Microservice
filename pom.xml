@@ -1,17 +1,65 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- Dùng Boot 3.3.0 làm parent để quản lý version toàn dự án -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.0</version>
+        <relativePath/>
+    </parent>
 
     <groupId>com.store</groupId>
     <artifactId>store-microservice</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>store-microservice</name>
-    <description>Spring Boot Multi-module Microservice Project</description>
 
+    <!-- BOM: Spring Cloud (Leyton 2023.0.x) và Spring AI -->
+    <properties>
+        <spring-cloud.version>2023.0.6</spring-cloud.version>
+        <spring-ai.version>1.1.0-SNAPSHOT</spring-ai.version> <!-- cần snapshot để dùng Google GenAI starters -->
+        <java.version>17</java.version>
+        <spring-boot.version>3.3.0</spring-boot.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring AI BOM -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Bật repo SNAPSHOT/Milestone cho Spring AI 1.1.0-SNAPSHOT; Maven Central vẫn được dùng mặc định -->
+    <repositories>
+        <repository>
+            <id>spring-snapshots</id>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
     <modules>
         <module>ConfigServiceApplication</module>
         <module>EurekaServerApplication</module>
@@ -24,34 +72,7 @@
         <module>ChatServiceApplication</module>
     </modules>
 
-    <properties>
-        <java.version>17</java.version>
-        <spring-boot.version>3.3.0</spring-boot.version>
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
-    <!-- ✅ Quản lý dependency của Spring Boot & Cloud -->
-    <dependencyManagement>
-        <dependencies>
-            <!-- Spring Boot BOM -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <!-- Spring Cloud BOM -->
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <!-- ✅ Plugin cho Spring Boot -->
     <build>

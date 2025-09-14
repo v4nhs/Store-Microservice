@@ -21,6 +21,8 @@ spring:
     hibernate:
       ddl-auto: update
       show-sql: true
+      properties:
+        hibernate.format_sql: true
 
   data:
     redis:
@@ -37,3 +39,7 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace

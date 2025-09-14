@@ -8,6 +8,7 @@ import lombok.*;
 public class StockRejected {
     private String orderId;
     private String productId;
+    private String size;
     private int requested;
     private String reason;
 }

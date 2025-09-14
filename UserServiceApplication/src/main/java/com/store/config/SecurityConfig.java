@@ -51,9 +51,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-    @Bean
-    @LoadBalanced
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
 }

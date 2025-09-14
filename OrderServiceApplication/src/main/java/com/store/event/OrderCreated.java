@@ -17,10 +17,12 @@ public class OrderCreated {
     private List<Item> items;
 
     @Getter @Setter
-    @NoArgsConstructor @AllArgsConstructor
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class Item {
         private String productId;
+        private String size;
         private Integer quantity;
         private BigDecimal unitPrice;
     }

@@ -8,6 +8,8 @@ import lombok.Data;
 public class OrderItemRequest {
     @NotBlank
     private String productId;
+    @NotBlank
+    private String size;
     @Min(1)
     private Integer quantity;
 }

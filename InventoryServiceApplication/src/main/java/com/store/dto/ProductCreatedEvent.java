@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProductCreatedEvent {
+    @JsonAlias({"id"})
     private String productId;
     private int quantity;
 }

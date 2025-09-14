@@ -1,13 +1,10 @@
 package com.store.service;
 
-
 import com.store.dto.OrderDTO;
 import com.store.dto.ProductDTO;
 import com.store.dto.UserDTO;
-import com.store.model.Order;
 import com.store.model.User;
 import com.store.repository.UserRepository;
-import com.store.dto.request.OrderRequest;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,10 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -51,29 +45,24 @@ public class UserService {
     }
     private HttpHeaders createAuthHeaders(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         if (token != null) {
-            if (!token.startsWith("Bearer ")) {
-                token = "Bearer " + token;
-            }
+            if (!token.startsWith("Bearer ")) token = "Bearer " + token;
             headers.set("Authorization", token);
         }
         return headers;
     }
+
+    // ========= PRODUCT APIs giữ nguyên (proxy sang product-service) =========
+
     public ProductDTO createProduct(ProductDTO productDto, HttpServletRequest request) {
         try {
             logger.info("Authorization token from request: {}", request.getHeader("Authorization"));
             HttpHeaders headers = createAuthHeaders(request);
             HttpEntity<ProductDTO> httpEntity = new HttpEntity<>(productDto, headers);
-
             ResponseEntity<ProductDTO> response = restTemplate.postForEntity(
-                    "http://product-service/api/products",
-                    httpEntity,
-                    ProductDTO.class
-            );
-
+                    "http://product-service/api/products", httpEntity, ProductDTO.class);
             logger.info("Headers to send: {}", headers);
             return response.getBody();
         } catch (Exception e) {
@@ -84,86 +73,68 @@ public class UserService {
     public List<ProductDTO> getAllProducts() {
         ResponseEntity<List<ProductDTO>> response = restTemplate.exchange(
                 "http://product-service/api/products",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {});
+                HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
         return response.getBody();
     }
-
     public ProductDTO getProductById(String id) {
         return restTemplate.getForObject("http://product-service/api/products/" + id, ProductDTO.class);
     }
-
     public void deleteProduct(String id) {
         restTemplate.delete("http://product-service/api/products/" + id);
     }
-
     public ProductDTO updateProduct(String id, ProductDTO dto) {
         restTemplate.put("http://product-service/api/products/" + id, dto);
         return getProductById(id);
     }
 
+    // ========= ORDER: chỉ forward sang order-service =========
+
+    /** Single-item order: user-service chỉ build JSON và POST sang order-service */
     public String placeOrder(OrderDTO dto, HttpServletRequest request) {
         try {
+            // lấy userId từ JWT (vẫn để order-service “sạch” logic)
             String token = request.getHeader("Authorization");
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-
-            // Giải mã token để lấy userId
+            if (token != null && token.startsWith("Bearer ")) token = token.substring(7);
             Claims claims = Jwts.parser()
                     .setSigningKey("Y3ZndQGRXwfnr+Ub6sCBDkri7Z1z8refHJYaaO42OZnyh1d70pHAV7it+bh/81rM")
                     .parseClaimsJws(token)
                     .getBody();
-
             String userId = claims.get("userId", String.class);
-            logger.info("userId from token: {}", userId);
 
-            // 🌟 Map từ DTO sang Request
-            OrderRequest orderRequest = new OrderRequest();
-            orderRequest.setUserId(userId);
-            orderRequest.setProductId(dto.getProductId());
-            orderRequest.setQuantity(dto.getQuantity());
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("userId", userId);
+            body.put("productId", dto.getProductId());
+            body.put("size", dto.getSize());           // <-- bắt buộc có size
+            body.put("quantity", dto.getQuantity());
 
-            // Tạo header và entity để gửi request
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + token);
             headers.setContentType(MediaType.APPLICATION_JSON);
+            if (token != null && !token.isBlank()) headers.setBearerAuth(token);
 
-            HttpEntity<OrderRequest> entity = new HttpEntity<>(orderRequest, headers);
-            logger.info("Đang gửi request tới order-service...");
-            // Gửi POST request đến order-service
-            ResponseEntity<Order> response = restTemplate.exchange(
+            ResponseEntity<OrderDTO> response = restTemplate.exchange(
                     "http://order-service/api/orders",
                     HttpMethod.POST,
-                    entity,
-                    Order.class
+                    new HttpEntity<>(body, headers),
+                    OrderDTO.class
             );
 
-            Order orderResponse = response.getBody();
-            logger.info("Order nhận về: {}", orderResponse);
-            logger.info("Status: {}", response.getStatusCodeValue());
-            logger.info("Body: {}", response.getBody());
-            logger.info("Đang gửi request tới order-service...");
-            return orderResponse != null ? orderResponse.toString() : "Order creation failed";
-
-
+            OrderDTO orderResponse = response.getBody();
+            return (orderResponse != null) ? orderResponse.toString() : "Order creation failed";
         } catch (Exception e) {
             logger.error("Đặt hàng thất bại: {}", e.getMessage(), e);
             return "Order creation failed due to internal error";
         }
     }
 
+    /** Multi-items order: mỗi item có productId + size + quantity; user-service chỉ proxy */
     public String placeOrderMulti(List<OrderDTO> items, HttpServletRequest request) {
         try {
-            if (items == null || items.isEmpty()) {
-                return "Danh sách sản phẩm trống";
-            }
+            if (items == null || items.isEmpty()) return "Danh sách sản phẩm trống";
 
+            // lấy userId từ JWT
             String rawAuth = request.getHeader("Authorization");
             String bare = rawAuth;
             if (bare != null && bare.startsWith("Bearer ")) bare = bare.substring(7);
-
             String userId = null;
             try {
                 if (bare != null && !bare.isBlank()) {
@@ -173,40 +144,42 @@ public class UserService {
                             .getBody();
                     userId = claims.get("userId", String.class);
                 }
-            } catch (Exception ignore) {
+            } catch (Exception ignore) {}
 
-            }
-
-            MultiOrderRequest payload = new MultiOrderRequest();
-            payload.setUserId(userId);
-            List<MultiOrderRequest.Item> reqItems = new ArrayList<>();
+            // payload đúng contract của order-service
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("userId", userId);
+            List<Map<String, Object>> reqItems = new ArrayList<>();
             for (OrderDTO dto : items) {
-                if (dto.getProductId() == null || dto.getProductId().isBlank() || dto.getQuantity() == null || dto.getQuantity() < 1) {
+                if (dto.getProductId() == null || dto.getProductId().isBlank()
+                        || dto.getQuantity() == null || dto.getQuantity() < 1) {
                     return "Sản phẩm không hợp lệ (productId/quantity)";
                 }
-                MultiOrderRequest.Item it = new MultiOrderRequest.Item();
-                it.setProductId(dto.getProductId());
-                it.setQuantity(dto.getQuantity());
+                if (dto.getSize() == null || dto.getSize().isBlank()) {
+                    return "Thiếu size cho productId=" + dto.getProductId();
+                }
+                Map<String, Object> it = new LinkedHashMap<>();
+                it.put("productId", dto.getProductId());
+                it.put("size", dto.getSize());          // <-- bắt buộc có size
+                it.put("quantity", dto.getQuantity());
                 reqItems.add(it);
             }
-            payload.setItems(reqItems);
+            payload.put("items", reqItems);
 
             HttpHeaders headers = createAuthHeaders(request); // forward Authorization
-            HttpEntity<MultiOrderRequest> entity = new HttpEntity<>(payload, headers);
-
-            logger.info("Đang gửi request tới order-service (multi) với {} items...", reqItems.size());
-            ResponseEntity<Order> response = restTemplate.exchange(
+            ResponseEntity<OrderDTO> response = restTemplate.exchange(
                     "http://order-service/api/orders/multi",
                     HttpMethod.POST,
-                    entity,
-                    Order.class
+                    new HttpEntity<>(payload, headers),
+                    OrderDTO.class
             );
 
-            Order order = response.getBody();
+            OrderDTO order = response.getBody();
             if (order == null) return "Order creation failed";
-
             BigDecimal total = order.getTotalAmount();
-            return "Created order id=" + order.getId() + ", status=" + order.getStatus() + ", total=" + (total != null ? total : BigDecimal.ZERO);
+            return "Created order id=" + order.getId()
+                    + ", status=" + order.getStatus()
+                    + ", total=" + (total != null ? total : BigDecimal.ZERO);
         } catch (HttpClientErrorException e) {
             logger.error("Đặt hàng (multi) thất bại ({}): {}", e.getStatusCode().value(), e.getResponseBodyAsString(), e);
             return "Order creation failed: " + e.getStatusCode().value() + " " + e.getStatusText();
@@ -216,50 +189,22 @@ public class UserService {
         }
     }
 
-    // Payload tối thiểu khớp với /api/orders/multi của order-service
-    public static class MultiOrderRequest {
-        private String userId;
-        private List<Item> items;
-
-        public String getUserId() { return userId; }
-        public void setUserId(String userId) { this.userId = userId; }
-        public List<Item> getItems() { return items; }
-        public void setItems(List<Item> items) { this.items = items; }
-
-        public static class Item {
-            private String productId;
-            private Integer quantity;
-
-            public String getProductId() { return productId; }
-            public void setProductId(String productId) { this.productId = productId; }
-            public Integer getQuantity() { return quantity; }
-            public void setQuantity(Integer quantity) { this.quantity = quantity; }
-        }
-    }
+    // ========= Các API khác giữ nguyên =========
 
     public List<OrderDTO> getAllOrder() {
         ResponseEntity<List<OrderDTO>> response = restTemplate.exchange(
                 "http://order-service/api/orders",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {});
+                HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
         return response.getBody();
     }
-
     public OrderDTO getOrderById(String id) {
         return restTemplate.getForObject("http://order-service/api/orders/" + id, OrderDTO.class);
     }
-
-    public String payOrderWithMethod(String orderId,
-                                     String idempotencyKey,
-                                     String method,
-                                     String provider,
+    public String payOrderWithMethod(String orderId, String idempotencyKey, String method, String provider,
                                      HttpServletRequest request) {
         try {
             String token = request.getHeader("Authorization");
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
+            if (token != null && token.startsWith("Bearer ")) token = token.substring(7);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
@@ -294,7 +239,6 @@ public class UserService {
         }
     }
 
-
     public byte[] exportProductsExcelBytes(HttpServletRequest request) {
         HttpHeaders headers = createAuthHeaders(request);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -303,7 +247,6 @@ public class UserService {
                 HttpMethod.GET, entity, byte[].class);
         return resp.getBody();
     }
-
     public byte[] templateProductsExcelBytes(HttpServletRequest request) {
         HttpHeaders headers = createAuthHeaders(request);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -312,7 +255,6 @@ public class UserService {
                 HttpMethod.GET, entity, byte[].class);
         return resp.getBody();
     }
-
     public String importProductsExcelJson(MultipartFile file, HttpServletRequest request) {
         try {
             HttpHeaders headersAuth = createAuthHeaders(request);
@@ -341,5 +283,4 @@ public class UserService {
                     + e.getMessage().replace("\"", "'") + "\"]}";
         }
     }
-
 }
