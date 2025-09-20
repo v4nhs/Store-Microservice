@@ -23,6 +23,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,26 +43,27 @@ public class OrderService {
                 "http://product-service/api/products/" + productId,
                 ProductDTO.class);
     }
+
     private Map<String, Object> getProductAsMap(String productId) {
         ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
                 "http://product-service/api/products/" + productId,
-                HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
+                HttpMethod.GET, null, new ParameterizedTypeReference<>() {
+                });
         return resp.getBody();
     }
 
     private boolean hasEnoughFromDto(ProductDTO p, String size, int need) {
         try {
-            Object sizesObj = p.getSizes(); // có thể là List<?> hoặc String
+            Object sizesObj = p.getSizes();
             if (sizesObj == null) return false;
 
-            // Trường hợp DTO trả về COLLECTION (List<ProductSizeDTO> hoặc tương tự)
             if (sizesObj instanceof java.util.Collection<?> sizes) {
                 for (Object obj : sizes) {
                     if (obj == null) continue;
                     try {
                         var c = obj.getClass();
                         var getSize = c.getMethod("getSize");
-                        var getQty  = c.getMethod("getQuantity");
+                        var getQty = c.getMethod("getQuantity");
                         String sName = String.valueOf(getSize.invoke(obj));
                         Integer sQty = (Integer) getQty.invoke(obj);
                         if (sName != null && sName.equalsIgnoreCase(size)) {
@@ -72,7 +74,6 @@ public class OrderService {
                 return false;
             }
 
-            // Trường hợp DTO trả về STRING (CSV): "S:10, M:5" hoặc "S, M, L"
             if (sizesObj instanceof String s) {
                 String[] tokens = s.split("[,;|]");
                 for (String raw : tokens) {
@@ -88,7 +89,9 @@ public class OrderService {
                         try {
                             qty = Integer.parseInt(t.substring(idx + 1).trim());
                             if (qty < 0) qty = 0;
-                        } catch (NumberFormatException ignore) { qty = 0; }
+                        } catch (NumberFormatException ignore) {
+                            qty = 0;
+                        }
                     }
                     if (name.equalsIgnoreCase(size)) {
                         return qty >= need;
@@ -97,27 +100,27 @@ public class OrderService {
                 return false;
             }
 
-            // Kiểu khác không hỗ trợ
             return false;
         } catch (Exception e) {
             return false;
         }
     }
 
-    @SuppressWarnings("unchecked")
     private boolean hasEnoughFromMap(Map<String, Object> product, String size, int need) {
         if (product == null) return false;
         Object sizesObj = product.get("sizes");
         if (!(sizesObj instanceof Collection<?> sizes)) return false;
         for (Object o : sizes) {
-            if (o instanceof Map<?,?> m) {
+            if (o instanceof Map<?, ?> m) {
                 Object sName = m.get("size");
-                Object sQty  = m.get("quantity");
+                Object sQty = m.get("quantity");
                 if (sName != null && size.equalsIgnoreCase(String.valueOf(sName))) {
                     try {
                         int qty = Integer.parseInt(String.valueOf(sQty));
                         return qty >= need;
-                    } catch (Exception ignore) { return false; }
+                    } catch (Exception ignore) {
+                        return false;
+                    }
                 }
             }
         }
@@ -144,55 +147,36 @@ public class OrderService {
     }
 
     /* ========================= Create Order ========================= */
-
-    @Transactional(rollbackFor = Exception.class)
-    public Order createOrder(OrderRequest request) {
-        log.info("============= CREATE ORDER (single) =============");
-
-        if (request.getQuantity() == null || request.getQuantity() < 1) {
-            throw new IllegalArgumentException("quantity phải >= 1 (productId=" + request.getProductId() + ")");
-        }
-
-        // 1) Lấy giá & kiểm tra tồn theo size
-        ProductDTO p = getProduct(request.getProductId());
-        if (p == null || p.getPrice() == null || p.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalStateException("Không lấy được giá hợp lệ cho productId=" + request.getProductId());
-        }
-        assertSizeInStock(request.getProductId(), request.getSize(), request.getQuantity());
-
-        // 2) Tạo order + item (giữ nguyên logic cũ)
-        BigDecimal unit = p.getPrice();
-        BigDecimal line = unit.multiply(BigDecimal.valueOf(request.getQuantity()));
-
-        Order o = Order.builder()
-                .userId(request.getUserId())
-                .status(OrderStatus.PENDING)
-                .totalAmount(line)
-                .build();
-
-        OrderItem item = OrderItem.builder()
-                .productId(request.getProductId())
-                .size(request.getSize())
-                .quantity(request.getQuantity())
-                .unitPrice(unit)
-                .lineAmount(line)
-                .itemStatus(OrderItemStatus.PENDING)
-                .build();
-
-        o.addItem(item);
-
-        Order saved = orderRepository.save(o);
-        publishOrderCreatedAfterCommit(saved);
-        return saved;
-    }
+    private static final String UUID_RE =
+            "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
 
     @Transactional
-    public Order createOrderMulti(OrderCreateRequest req) {
+    public Order createOrder(OrderCreateRequest req) {
         if (req.getItems() == null || req.getItems().isEmpty())
             throw new IllegalArgumentException("Danh sách items trống");
 
         // Gom các productId cần query để giảm số lần call (cơ bản)
         Map<String, ProductDTO> productCache = new HashMap<>();
+        final String raw = req.getUserId();
+        if (raw == null) throw new IllegalArgumentException("userId không hợp lệ (phải là UUID)");
+
+// 1) Gột whitespace Unicode & ký tự vô hình thường gặp
+        String uid = Normalizer.normalize(raw, Normalizer.Form.NFKC)
+                .strip()
+                .replace("\uFEFF", "")  // BOM
+                .replace("\u200B", "")  // ZERO WIDTH SPACE
+                .replace("\u200E", "")  // LRM
+                .replace("\u200F", ""); // RLM
+
+// 2) Parse UUID – nếu lỗi vẫn ném 400
+        try {
+            UUID.fromString(uid);
+        } catch (Exception e) {
+            // gợi ý log debug: mã hex từng ký tự để truy dấu ký tự ẩn
+             log.warn("userId raw='{}', uid='{}', hex={}", raw, uid,
+                     uid.chars().mapToObj(c -> String.format("%04x", c)).collect(Collectors.joining(" ")));
+            throw new IllegalArgumentException("userId không hợp lệ (phải là UUID)");
+        }
 
         Order order = Order.builder()
                 .userId(req.getUserId())
@@ -237,54 +221,6 @@ public class OrderService {
         return saved;
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public List<Order> createOrder(List<OrderRequest> requests) {
-        if (requests == null || requests.isEmpty()) {
-            throw new IllegalStateException("Danh sách trống");
-        }
-
-        List<Order> toSave = new ArrayList<>(requests.size());
-        Map<String, ProductDTO> productCache = new HashMap<>();
-
-        for (OrderRequest req : requests) {
-            if (req.getQuantity() == null || req.getQuantity() < 1) {
-                throw new IllegalArgumentException("quantity phải >= 1 (productId=" + req.getProductId() + ")");
-            }
-
-            // 1) Lấy giá & kiểm tra tồn theo size
-            ProductDTO p = productCache.computeIfAbsent(req.getProductId(), this::getProduct);
-            if (p == null || p.getPrice() == null || p.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalStateException("Không lấy được giá hợp lệ cho productId=" + req.getProductId());
-            }
-            assertSizeInStock(req.getProductId(), req.getSize(), req.getQuantity());
-
-            // 2) Build order + item
-            BigDecimal unit = p.getPrice();
-            BigDecimal line = unit.multiply(BigDecimal.valueOf(req.getQuantity()));
-
-            Order o = Order.builder()
-                    .userId(req.getUserId())
-                    .status(OrderStatus.PENDING)
-                    .totalAmount(line)
-                    .build();
-
-            OrderItem item = OrderItem.builder()
-                    .productId(req.getProductId())
-                    .size(req.getSize())
-                    .quantity(req.getQuantity())
-                    .unitPrice(unit)
-                    .lineAmount(line)
-                    .itemStatus(OrderItemStatus.PENDING)
-                    .build();
-
-            o.addItem(item);
-            toSave.add(o);
-        }
-
-        List<Order> saved = orderRepository.saveAll(toSave);
-        for (Order o : saved) publishOrderCreatedAfterCommit(o);
-        return saved;
-    }
 
     /* ========================= Publish event ========================= */
 
@@ -304,7 +240,8 @@ public class OrderService {
                 .build();
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override public void afterCommit() {
+            @Override
+            public void afterCommit() {
                 kafkaTemplate.send("order-created", evt);
                 log.info("Published 'order-created' (items={}) for {}", saved.getItems().size(), saved.getId());
             }
@@ -320,5 +257,15 @@ public class OrderService {
     public Order getOrderById(String id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with id=" + id));
+    }
+
+    public List<Order> getAllByUser(String userId) {
+        return orderRepository.findByUserIdOrderByIdDesc(userId);
+    }
+
+    public Order getByIdForUser(String orderId, String userId) {
+        return orderRepository.findById(orderId)
+                .filter(o -> userId.equals(o.getUserId()))
+                .orElse(null);
     }
 }

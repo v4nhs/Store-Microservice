@@ -20,6 +20,7 @@ public class ProductCreatedEvent {
     private String name;
     private String image;
     private List<String> sizes = new ArrayList<>();
+    private List<SizeQuantity> sizesWithQty = new ArrayList<>();
     @JsonSerialize(using = BigDecimalPlainSerializer.class)
     private BigDecimal price;
     private Integer quantity;

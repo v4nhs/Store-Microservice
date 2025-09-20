@@ -17,7 +17,7 @@ public class ProductDTO {
     private String id;
     private String name;
     private String image;
-    private List<ProductDTO> sizes = new ArrayList<>();
+    private List<ProductSizeDTO> sizes = new ArrayList<>();
     @JsonSerialize(using = BigDecimalPlainSerializer.class)
     private BigDecimal price;
     private Integer quantity;

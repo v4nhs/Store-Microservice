@@ -55,4 +55,11 @@ public class ProductController {
         productService.updateQuantity(productId, quantity);
         return ResponseEntity.ok().build();
     }
+    @GetMapping("/search")
+    public ResponseEntity<ProductDTO> searchByName(@RequestParam("name") String name) {
+        return productService.getByName(name)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 }

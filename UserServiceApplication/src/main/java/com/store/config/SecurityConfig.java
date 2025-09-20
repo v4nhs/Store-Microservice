@@ -39,13 +39,21 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/auth/**").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "/products").hasAuthority("ROLE_ADMIN")
-//                        .requestMatchers(HttpMethod.PUT, "/products/**").hasAuthority("ROLE_ADMIN")
-//                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasAuthority("ROLE_ADMIN")
-//                        .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-//                        .anyRequest().authenticated()
-                                .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/user/allUser").hasAuthority("ROLE_ADMIN")
+//                       ========== PRODUCT ===========
+                        .requestMatchers(HttpMethod.GET, "/api/user/products/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/user/products").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/user/products/excel/export").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/user/products/excel/import").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/user/products/excel/template").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/user/products/{id}").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/user/products/{id}").hasAuthority("ROLE_ADMIN")
+//                       ============ ORDER ===========
+                        .requestMatchers(HttpMethod.POST, "/api/user/orders/create").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/user/orders/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/user/orders/pay/cod").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/user/orders/pay/paypal").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

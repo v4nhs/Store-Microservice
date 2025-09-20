@@ -13,9 +13,4 @@ public record ProductCreatedEvent(
         List<String> sizes,
         List<SizeQty> sizesWithQty
 ) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static record SizeQty(
-            String size,
-            Integer quantity
-    ) {}
 }

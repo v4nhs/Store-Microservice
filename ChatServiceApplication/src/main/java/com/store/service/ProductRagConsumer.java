@@ -1,7 +1,8 @@
 package com.store.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.store.dto.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -10,11 +11,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -24,9 +22,8 @@ public class ProductRagConsumer {
     private final ObjectMapper objectMapper;
     private final RagService rag;
 
-    // Nghe cả tạo mới & cập nhật
     @KafkaListener(
-            topics = {"product-created-topic", "product-updated-topic"},
+            topics = {"product-created-topic", "product-updated-topic", "product-deleted-topic"},
             groupId = "${spring.kafka.consumer.group-id:chat-service}",
             containerFactory = "kafkaListenerContainerFactory"
     )
@@ -35,34 +32,49 @@ public class ProductRagConsumer {
                                @Header(KafkaHeaders.OFFSET) long offset) throws Exception {
         try {
             String json = payload;
-            // ✅ payload là một JSON string (double-encoded) -> unwrap
             if (json != null) {
                 String t = json.trim();
                 if (t.startsWith("\"") && t.endsWith("\"")) {
-                    // bóc lớp chuỗi (ví dụ "\"{...}\"" -> "{...}")
                     json = objectMapper.readValue(json, String.class);
                 }
             }
 
-            ProductEvent ev = objectMapper.readValue(json, ProductEvent.class);
-            log.info("[RAG] {} offset={} id={} name={} qty={} sizes={}",
-                    topic, offset, ev.id(), ev.name(), ev.quantity(), ev.sizes());
-            ingest(ev);
+            if ("product-created-topic".equals(topic)) {
+                ProductCreatedEvent ev = objectMapper.readValue(json, ProductCreatedEvent.class);
+                log.info("[RAG] CREATED offset={} id={} name={}", topic, offset, ev.id(), ev.name());
+                ingest(ev);
+
+            } else if ("product-updated-topic".equals(topic)) {
+                ProductCreatedEvent ev = objectMapper.readValue(json, ProductCreatedEvent.class);
+                log.info("[RAG] UPDATED offset={} id={} name={}", topic, offset, ev.id(), ev.name());
+                rag.deleteByProductId(ev.id());
+                log.info("[RAG] DELETED old vectors for productId={}", ev.id());
+                // 2. Ingest thông tin mới
+                ingest(ev);
+
+            } else if ("product-deleted-topic".equals(topic)) {
+                Map<String, Object> ev = objectMapper.readValue(json, new TypeReference<>() {});
+                String productId = (String) ev.get("id");
+                if (productId != null && !productId.isBlank()) {
+                    log.info("[RAG] DELETED offset={} id={}", topic, offset, productId);
+                    rag.deleteByProductId(productId);
+                }
+            }
 
         } catch (Exception e) {
             log.error("Kafka consume error topic={} offset={} payload={}", topic, offset, payload, e);
-            throw e; // để ErrorHandler đẩy sang DLT
+            throw e;
         }
     }
-    /** Ingest nội dung thân thiện truy hồi (có cả mã sản phẩm như JR8830 nếu bắt được) */
-    private void ingest(ProductEvent ev) {
+
+    private void ingest(ProductCreatedEvent ev) {
         if (ev == null) return;
 
         String id = nz(ev.id());
         String name = nz(ev.name());
-        BigDecimal price = ev.price();
+        java.math.BigDecimal price = ev.price();
         Integer quantity = ev.quantity();
-        String code = extractCode(name); // ví dụ "JR8830"
+        String code = extractCode(name);
 
         // 1) Tổng quan
         String overview = ("Sản phẩm: %s%s. ID: %s. Giá: %s. Tổng tồn: %s.")
@@ -75,7 +87,7 @@ public class ProductRagConsumer {
         ));
 
         // 2) Danh sách size (chuỗi)
-        List<String> sizes = ev.sizes();
+        java.util.List<String> sizes = ev.sizes();
         if (sizes != null && !sizes.isEmpty()) {
             rag.ingestText("Các size: " + String.join(", ", sizes), Map.of(
                     "type", "size_guide", "productId", id, "code", code, "lang", "vi"
@@ -83,11 +95,11 @@ public class ProductRagConsumer {
         }
 
         // 3) Tồn kho theo size (chi tiết)
-        List<SizeQty> sizesWithQty = ev.sizesWithQty();
+        java.util.List<com.store.dto.SizeQty> sizesWithQty = ev.sizesWithQty();
         if (sizesWithQty != null && !sizesWithQty.isEmpty()) {
             String inv = sizesWithQty.stream()
                     .map(sq -> nz(sq.size()) + ": " + (sq.quantity() == null ? 0 : sq.quantity()))
-                    .collect(Collectors.joining(", "));
+                    .collect(java.util.stream.Collectors.joining(", "));
             rag.ingestText("Tồn kho theo size: " + inv, Map.of(
                     "type", "inventory", "productId", id, "code", code, "lang", "vi"
             ));
@@ -101,28 +113,14 @@ public class ProductRagConsumer {
         }
     }
 
-    /** DTO null-safe cho event (bỏ qua field lạ để không vỡ parse) */
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record ProductEvent(
-            String id,
-            String name,
-            String image,
-            BigDecimal price,
-            Integer quantity,
-            List<String> sizes,
-            List<SizeQty> sizesWithQty
-    ) {}
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record SizeQty(String size, Integer quantity) {}
-
     private static String nz(String s) { return s == null ? "" : s; }
 
-    /** Bắt mã sản phẩm dạng chữ in + số, ví dụ JR8830 */
-    private static final Pattern CODE = Pattern.compile("\\b[A-Z]{2,}\\d+\\b");
+    private static final java.util.regex.Pattern CODE = java.util.regex.Pattern.compile("\\b[A-Z]{2,}\\d+\\b");
     private static String extractCode(String text) {
         if (text == null) return "";
         var m = CODE.matcher(text);
         return m.find() ? m.group() : "";
     }
+
+
 }

@@ -34,9 +34,24 @@ services:
     volumes:
       - qdrant_storage:/qdrant/storage
   chat-service:
+    build: ./ChatServiceApplication
     environment:
-      - GOOGLE_GENAI_API_KEY=AIzaSyAn3mo1ndy-Wfnexvm_1lFkYlNPca9iVxU
-      - GOOGLE_API_KEY=AIzaSyAn3mo1ndy-Wfnexvm_1lFkYlNPca9iVxU
+      - SPRING_AI_OLLAMA_BASE-URL=http://ollama:11434
+      - SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL=llama3
+      - SPRING_AI_OLLAMA_EMBEDDING_OPTIONS_MODEL=mxbai-embed-large
+      - SPRING_AI_VECTORSTORE_QDRANT_HOST=qdrant
+      - SPRING_AI_VECTORSTORE_QDRANT_PORT=6334
+    depends_on:
+      - ollama
+      - qdrant
+
+#     environment:
+#       - GOOGLE_GENAI_API_KEY=AIzaSyAn3mo1ndy-Wfnexvm_1lFkYlNPca9iVxU
+#     secrets:
+#       - google_api_key
+# secrets:
+#   google_api_key:
+#     file: ./google_api_key.txt
 volumes:
   qdrant_storage: {}
   # eureka-server:

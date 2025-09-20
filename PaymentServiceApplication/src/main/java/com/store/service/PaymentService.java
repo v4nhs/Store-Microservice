@@ -11,7 +11,7 @@ import com.store.model.Payment;
 import com.store.model.PaymentMethod;
 import com.store.model.PaymentStatus;
 import com.store.model.PaymentResult;
-import com.store.paypal.PayPalClient;
+import com.store.client.PayPalClient;
 import com.store.processor.PaymentProcessor;
 import com.store.repository.OutboxRepository;
 import com.store.repository.PaymentRepository;

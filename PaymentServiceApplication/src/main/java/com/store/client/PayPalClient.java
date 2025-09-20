@@ -1,22 +1,32 @@
-package com.store.paypal;
+package com.store.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.store.dto.PaypalErr;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
 @Component
+@Log4j2
 public class PayPalClient {
 
     private final RestTemplate restTemplate;
-    public PayPalClient(@Qualifier("externalRestTemplate") RestTemplate restTemplate) {
+    private final ObjectMapper om;
+
+    public PayPalClient(@Qualifier("externalRestTemplate") RestTemplate restTemplate, ObjectMapper om) {
         this.restTemplate = restTemplate;
+        this.om = om;
     }
 
     @Value("${paypal.base-url:https://api-m.sandbox.paypal.com}")
@@ -106,17 +116,49 @@ public class PayPalClient {
         return new CreateOrderResult(id, approval);
     }
 
-    public Map<?, ?> capture(String orderId) {
-        String token = accessToken();
-        String url = baseUrl + "/v2/checkout/orders/" + orderId + "/capture";
+    public Map<String, Object> capture(String orderId) {
+        try {
+            ResponseEntity<Map<String,Object>> res = restTemplate.exchange(
+                    "https://api-m.sandbox.paypal.com/v2/checkout/orders/{id}/capture",
+                    HttpMethod.POST,
+                    new HttpEntity<>(createHeadersWithBearer()),
+                    new ParameterizedTypeReference<Map<String, Object>>() {},
+                    orderId
+            );
+            return res.getBody();
+        } catch (HttpClientErrorException e) {
+            String raw = e.getResponseBodyAsString();
+            String summary = "PAYPAL " + e.getStatusCode().value() + " " + e.getStatusText();
 
-        HttpHeaders h = new HttpHeaders();
-        h.setBearerAuth(token);
-        h.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<Map> resp = restTemplate.postForEntity(url, new HttpEntity<>("{}", h), Map.class);
-        return resp.getBody();
+            try {
+                PaypalErr err = om.readValue(raw, PaypalErr.class);
+                String issue = err.firstIssue();
+                log.warn("[PAYPAL][ERR] {} / {} - {} (debug_id={})",
+                        err.name, issue, err.message, err.debug_id);
+                if (err.links != null) {
+                    err.links.stream()
+                            .filter(l -> "information_link".equalsIgnoreCase(l.rel))
+                            .findFirst()
+                            .ifPresent(l -> log.warn("[PAYPAL][DOC] {}", l.href));
+                }
+                throw new ResponseStatusException(
+                        e.getStatusCode(),
+                        err.name + " / " + issue + " - " + err.message + " (debug_id=" + err.debug_id + ")",
+                        e
+                );
+            } catch (Exception parseEx) {
+                log.warn("[PAYPAL][ERR] {} rawBody={}", summary, raw);
+                throw new ResponseStatusException(e.getStatusCode(), summary, e);
+            }
+        }
     }
 
+    private HttpHeaders createHeadersWithBearer() {
+        HttpHeaders h = new HttpHeaders();
+        h.setBearerAuth(accessToken());
+        h.setContentType(MediaType.APPLICATION_JSON);
+        h.setAccept(List.of(MediaType.APPLICATION_JSON));
+        return h;
+    }
     public record CreateOrderResult(String orderId, String approvalUrl) {}
 }

@@ -26,8 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    @GetMapping("/ping") public String ping(){ return "ok"; }
-    @GetMapping
+    @GetMapping("/ping")
+    public String ping(){ return "ok"; }
+    @GetMapping("/allUser")
     public List<User> getAllUser(){
         return userService.getAllUser();
     }
@@ -57,18 +58,9 @@ public class UserController {
         userService.deleteProduct(id);
     }
 
-    @PostMapping("/orders")
-    public ResponseEntity<String> placeOrder(@RequestBody OrderRequest orderRequest, HttpServletRequest request) {
-        OrderDTO dto = new OrderDTO();
-        dto.setProductId(orderRequest.getProductId());
-        dto.setQuantity(orderRequest.getQuantity());
-
-        String result = userService.placeOrder(dto, request);
-        return ResponseEntity.ok(result);
-    }
-    @PostMapping("/orders/multi")
-    public ResponseEntity<String> placeOrderMulti(@RequestBody List<OrderDTO> items, HttpServletRequest request) {
-        String result = userService.placeOrderMulti(items, request);
+    @PostMapping("/orders/create")
+    public ResponseEntity<String> placeOrder(@RequestBody List<OrderDTO> items, HttpServletRequest request) {
+        String result = userService.placeOrder(items, request);
         return ResponseEntity.ok(result);
     }
 
@@ -102,7 +94,6 @@ public class UserController {
     @PostMapping("/orders/pay/paypal")
     public ResponseEntity<?> payOrderPaypal(@RequestBody PaymentRequest requestBody,
                                             HttpServletRequest httpRequest) {
-        // Gọi xuống payment-service như cũ
         String result = userService.payOrderWithMethod(
                 requestBody.getOrderId(),
                 requestBody.getIdempotencyKey(),

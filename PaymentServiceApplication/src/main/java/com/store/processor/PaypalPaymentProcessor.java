@@ -3,7 +3,7 @@ package com.store.processor;
 import com.store.model.Payment;
 import com.store.model.PaymentMethod;
 import com.store.model.PaymentResult;
-import com.store.paypal.PayPalClient;
+import com.store.client.PayPalClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
