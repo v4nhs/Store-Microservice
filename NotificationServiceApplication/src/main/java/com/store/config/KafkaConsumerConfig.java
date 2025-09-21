@@ -1,6 +1,7 @@
 package com.store.config;
 
 import com.store.dto.OrderDTO;
+import com.store.dto.PaymentFailed;
 import com.store.dto.PaymentSucceeded;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -74,6 +75,31 @@ public class KafkaConsumerConfig {
         f.setConsumerFactory(cf);
         return f;
     }
+    @Bean
+    public ConsumerFactory<String, PaymentFailed> paymentFailedConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "notification-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+
+        JsonDeserializer<PaymentFailed> deserializer = new JsonDeserializer<>(PaymentFailed.class, false);
+        deserializer.addTrustedPackages("com.store.dto", "*");
+        deserializer.setUseTypeMapperForKey(false);
+
+        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, PaymentFailed> paymentFailedListenerFactory(
+            ConsumerFactory<String, PaymentFailed> cf) {
+        ConcurrentKafkaListenerContainerFactory<String, PaymentFailed> f =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        f.setConsumerFactory(cf);
+        return f;
+    }
+
+
     /* ---------- PRODUCER (JsonSerializer) cho DLT ---------- */
     @Bean
     public ProducerFactory<String, OrderDTO> orderDtoProducerFactory() {

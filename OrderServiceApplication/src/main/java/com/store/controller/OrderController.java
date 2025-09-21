@@ -1,6 +1,8 @@
 package com.store.controller;
 
+import com.store.dto.OrderDTO;
 import com.store.dto.request.OrderCreateRequest;
+import com.store.dto.request.OrderItemRequest;
 import com.store.model.Order;
 import com.store.dto.request.OrderRequest;
 import com.store.security.JwtUtil;
@@ -9,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,55 +33,24 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createOrder(@Valid @RequestBody OrderCreateRequest req,
-                                         HttpServletRequest httpReq) {
-        System.out.println("[ORDER][INCOMING] " + req);
-
-        // 1) Lấy Authorization từ header gốc (ổn định hơn @RequestHeader khi qua proxy/gateway)
-        String auth = httpReq.getHeader("Authorization");
-        if (auth == null || !auth.startsWith("Bearer ")) {
-            return bad("Missing Authorization header (Bearer)");
-        }
-        String token = auth.substring(7);
-
-        // 2) Trích userId từ JWT và GHI ĐÈ body
-        String userIdFromJwt;
-        try {
-            userIdFromJwt = jwtUtil.extractUserId(token); // dùng JwtUtil của bạn
-            if (userIdFromJwt == null || userIdFromJwt.isBlank()) {
-                return bad("Missing userId claim in token");
-            }
-            // Làm sạch & validate UUID
-            userIdFromJwt = java.text.Normalizer.normalize(userIdFromJwt, java.text.Normalizer.Form.NFKC)
-                    .strip()
-                    .replace("\uFEFF","").replace("\u200B","").replace("\u200E","").replace("\u200F","");
-            java.util.UUID.fromString(userIdFromJwt);
-        } catch (Exception e) {
-            return bad("Invalid token or userId: " + e.getClass().getSimpleName());
-        }
-        req.setUserId(userIdFromJwt);
-
-        // 3) Validate items/size
-        if (req.getItems() == null || req.getItems().isEmpty()) {
-            return bad("Danh sách items trống");
-        }
-        for (var it : req.getItems()) {
-            if (it.getSize() == null || it.getSize().isBlank()) {
-                return bad("Thiếu size cho productId=" + it.getProductId());
-            }
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody List<OrderItemRequest> items,
+                                                HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 4) Tạo order như cũ
-        Order order = orderService.createOrder(req);
+        // Cắt "Bearer " để lấy token
+        String token = header.substring(7);
 
-        // 5) Cache trạng thái vào Redis như bạn đang làm...
-        String key = "order:" + order.getId();
-        redisTemplate.opsForValue().set(key, order.getStatus().toString(), java.time.Duration.ofDays(7));
+        // Truyền token (String) vào JwtUtil
+        String userId = jwtUtil.extractUserId(token);
 
-        return ResponseEntity.ok(order);
+        // Tạo order
+        Order order = orderService.createOrder(userId, items);
+        return ResponseEntity.ok(orderService.toDto(order));
     }
 
-    // Helper trả JSON message thay vì [no body]
     private ResponseEntity<Map<String,Object>> bad(String msg) {
         Map<String,Object> body = new java.util.LinkedHashMap<>();
         body.put("message", msg);
@@ -86,8 +58,8 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
-        return ResponseEntity.ok(orderService.getAllOrders());
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrderDtos());
     }
 
     @GetMapping("/{id}")
@@ -111,7 +83,7 @@ public class OrderController {
         }
 
         var orders = orderService.getAllByUser(userId);
-        return ResponseEntity.ok(orders); // [] nếu chưa có
+        return ResponseEntity.ok(orders);
     }
 
     @GetMapping("/mine/{id}")

@@ -1,6 +1,7 @@
 package com.store.controller;
 
 import com.store.dto.OrderDTO;
+import com.store.dto.request.OrderItemRequest;
 import com.store.dto.request.PaymentRequest;
 import com.store.dto.ProductDTO;
 import com.store.model.User;
@@ -59,11 +60,11 @@ public class UserController {
     }
 
     @PostMapping("/orders/create")
-    public ResponseEntity<String> placeOrder(@RequestBody List<OrderDTO> items, HttpServletRequest request) {
-        String result = userService.placeOrder(items, request);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<OrderDTO> placeOrder(@RequestBody List<OrderItemRequest> items,
+                                               HttpServletRequest request) {
+        OrderDTO created = userService.placeOrder(items, request);
+        return ResponseEntity.ok(created);
     }
-
 
     @GetMapping("/orders")
     public List<OrderDTO> getAllOrder() {

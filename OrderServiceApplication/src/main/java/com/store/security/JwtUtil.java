@@ -38,7 +38,7 @@ public class JwtUtil {
         }
 
         String uid = clean(String.valueOf(raw));
-        UUID.fromString(uid); // ném IllegalArgumentException nếu không hợp lệ
+        UUID.fromString(uid);
         return uid;
     }
 

@@ -2,6 +2,7 @@ package com.store.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.store.dto.OrderDTO;
+import com.store.dto.PaymentFailed;
 import com.store.dto.PaymentSucceeded;
 import com.store.dto.ProductDTO;
 import jakarta.mail.MessagingException;
@@ -350,6 +351,41 @@ public class NotificationService {
                 money(amount),
                 nullToDash(evt.getStatus())
         );
+        safeSend(to, subject, body);
+    }
+    public void sendPaymentFailedEmail(PaymentFailed evt) {
+        String to = (evt.getEmail() != null && !evt.getEmail().isBlank())
+                ? evt.getEmail()
+                : "test@inbox.mailtrap.io";
+        String displayName = (evt.getCustomerName() != null && !evt.getCustomerName().isBlank())
+                ? evt.getCustomerName() : "bạn";
+
+        String subject = "[Store] Thanh toán đơn #" + evt.getOrderId() + " thất bại";
+        BigDecimal amount = toBigDecimal(evt.getAmount());
+
+        String body = """
+        <p>Xin chào <b>%s</b>,</p>
+        <p>Rất tiếc, thanh toán cho đơn hàng <b>#%s</b> đã <b>thất bại</b>.</p>
+        <ul>
+            <li>Phương thức: <b>%s</b></li>
+            <li>Nhà cung cấp: <b>%s</b></li>
+            <li>Mã giao dịch: <b>%s</b></li>
+            <li>Số tiền: <b>%s</b></li>
+            <li>Trạng thái: <b>%s</b></li>
+            <li>Lý do: <b>%s</b></li>
+        </ul>
+        <p>Vui lòng thử lại hoặc chọn phương thức khác.</p>
+        """.formatted(
+                displayName,
+                evt.getOrderId(),
+                nullToDash(evt.getMethod()),
+                nullToDash(evt.getProvider()),
+                nullToDash(evt.getTransactionRef()),
+                money(amount),
+                nullToDash(evt.getStatus()),
+                nullToDash(evt.getReason())
+        );
+
         safeSend(to, subject, body);
     }
 

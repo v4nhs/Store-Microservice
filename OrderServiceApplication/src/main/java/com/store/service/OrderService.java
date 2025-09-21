@@ -1,6 +1,8 @@
 package com.store.service;
 
+import com.store.dto.OrderDTO;
 import com.store.dto.request.OrderCreateRequest;
+import com.store.dto.request.OrderItemRequest;
 import com.store.event.OrderCreated;
 import com.store.dto.ProductDTO;
 import com.store.model.Order;
@@ -151,53 +153,27 @@ public class OrderService {
             "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
 
     @Transactional
-    public Order createOrder(OrderCreateRequest req) {
-        if (req.getItems() == null || req.getItems().isEmpty())
+    public Order createOrder(String userId, List<OrderItemRequest> items) {
+        if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("Danh sách items trống");
-
-        // Gom các productId cần query để giảm số lần call (cơ bản)
-        Map<String, ProductDTO> productCache = new HashMap<>();
-        final String raw = req.getUserId();
-        if (raw == null) throw new IllegalArgumentException("userId không hợp lệ (phải là UUID)");
-
-// 1) Gột whitespace Unicode & ký tự vô hình thường gặp
-        String uid = Normalizer.normalize(raw, Normalizer.Form.NFKC)
-                .strip()
-                .replace("\uFEFF", "")  // BOM
-                .replace("\u200B", "")  // ZERO WIDTH SPACE
-                .replace("\u200E", "")  // LRM
-                .replace("\u200F", ""); // RLM
-
-// 2) Parse UUID – nếu lỗi vẫn ném 400
-        try {
-            UUID.fromString(uid);
-        } catch (Exception e) {
-            // gợi ý log debug: mã hex từng ký tự để truy dấu ký tự ẩn
-             log.warn("userId raw='{}', uid='{}', hex={}", raw, uid,
-                     uid.chars().mapToObj(c -> String.format("%04x", c)).collect(Collectors.joining(" ")));
-            throw new IllegalArgumentException("userId không hợp lệ (phải là UUID)");
         }
 
         Order order = Order.builder()
-                .userId(req.getUserId())
+                .userId(userId)
                 .status(OrderStatus.PENDING)
                 .totalAmount(BigDecimal.ZERO)
                 .build();
 
-        BigDecimal grandTotal = BigDecimal.ZERO;
+        BigDecimal total = BigDecimal.ZERO;
 
-        for (var it : req.getItems()) {
-            if (it.getQuantity() == null || it.getQuantity() < 1) {
-                throw new IllegalArgumentException("quantity phải >= 1 (productId=" + it.getProductId() + ")");
+        for (var it : items) {
+            ProductDTO p = getProduct(it.getProductId());
+            if (p == null || p.getPrice() == null || p.getPrice().signum() <= 0) {
+                throw new IllegalStateException("Giá không hợp lệ cho productId=" + it.getProductId());
             }
-            // 1) Lấy giá & kiểm tra tồn theo size
-            ProductDTO p = productCache.computeIfAbsent(it.getProductId(), this::getProduct);
-            if (p == null || p.getPrice() == null || p.getPrice().signum() <= 0)
-                throw new IllegalStateException("Giá không hợp lệ: " + it.getProductId());
 
             assertSizeInStock(it.getProductId(), it.getSize(), it.getQuantity());
 
-            // 2) Tạo item
             BigDecimal unit = p.getPrice();
             BigDecimal line = unit.multiply(BigDecimal.valueOf(it.getQuantity()));
 
@@ -211,16 +187,14 @@ public class OrderService {
                     .build();
 
             order.addItem(item);
-            grandTotal = grandTotal.add(line);
+            total = total.add(line);
         }
 
-        order.setTotalAmount(grandTotal);
+        order.setTotalAmount(total);
         Order saved = orderRepository.save(order);
-
         publishOrderCreatedAfterCommit(saved);
         return saved;
     }
-
 
     /* ========================= Publish event ========================= */
 
@@ -267,5 +241,44 @@ public class OrderService {
         return orderRepository.findById(orderId)
                 .filter(o -> userId.equals(o.getUserId()))
                 .orElse(null);
+    }
+
+    public OrderDTO toDto(Order o) {
+        if (o == null) return null;
+
+        java.util.List<com.store.dto.OrderItemDTO> itemDTOs =
+                (o.getItems() == null ? java.util.List.of() :
+                        o.getItems().stream().filter(java.util.Objects::nonNull).map(i -> {
+                            java.math.BigDecimal unit = i.getUnitPrice() == null ? java.math.BigDecimal.ZERO : i.getUnitPrice();
+                            int qty = i.getQuantity() == null ? 0 : i.getQuantity();
+                            java.math.BigDecimal line = unit.multiply(java.math.BigDecimal.valueOf(qty));
+                            return com.store.dto.OrderItemDTO.builder()
+                                    .productId(i.getProductId())
+                                    .size(i.getSize())
+                                    .quantity(qty)
+                                    .unitPrice(unit)
+                                    .lineAmount(line)
+                                    .build();
+                        }).toList());
+
+        java.math.BigDecimal total = o.getTotalAmount();
+        if (total == null) {
+            total = itemDTOs.stream()
+                    .map(it -> it.getLineAmount() == null ? java.math.BigDecimal.ZERO : it.getLineAmount())
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        }
+
+        return com.store.dto.OrderDTO.builder()
+                .orderId(o.getId())
+                .userId(o.getUserId())
+                .status(o.getStatus() == null ? null : o.getStatus().name())
+                .totalAmount(total)
+                .items(itemDTOs)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderDTO> getAllOrderDtos() {
+        return orderRepository.findAllWithItems().stream().map(this::toDto).toList();
     }
 }
